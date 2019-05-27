@@ -1,0 +1,15 @@
+{
+  "testURL": "http://localhost/",
+  "testMatch": ["**/?(*.)(test).js?(x)"],
+  "testPathIgnorePatterns": ["/node_modules/", "/target/"],
+  "setupFiles": [
+    "raf/polyfill",
+    "<rootDir>/src/setupTest.js"
+  ],
+  "snapshotSerializers": [
+    "enzyme-to-json/serializer"
+  ],
+  "moduleNameMapper": {
+    "^.+\\.(css|less|scss)$": "identity-obj-proxy"
+  }
+}
