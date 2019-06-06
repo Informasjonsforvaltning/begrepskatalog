@@ -6,5 +6,10 @@ export const nb = {
   preferredTerm: 'Anbefalt term',
   fieldOfStudy: 'Fagområde',
   validity: 'Gyldighet',
-  status: 'Status'
+  status: 'Status',
+  organisationNumber: 'Organisasjonsnummer:',
+  information: 'Informasjonskapsler',
+  informationText: 'Dette er et samarbeidsprosjekt mellom Brønnøysundregistrene, Difi og øvrige SKATE-etater.',
+  mail: 'fellesdatakatalog@brreg.no',
+  privacy: ' og personvern'
 };
