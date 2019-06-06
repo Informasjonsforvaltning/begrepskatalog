@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+    <changeSet author="exttno" id="1.0-0">
+        <sql endDelimiter=";">
+            CREATE SCHEMA IF NOT EXISTS conceptregistration;
+        </sql>
+    </changeSet>
+
+    <changeSet author="exttno" id="1.1-1">
+        <createTable tableName="status">
+            <column name="id" type="INTEGER">
+                <constraints primaryKey="true" primaryKeyName="status_pkey"/>
+            </column>
+            <column name="name" type="TEXT"/>
+        </createTable>
+
+        <createTable tableName="virksomhet">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="virksomhet_pkey"/>
+            </column>
+            <column name="orgNumber" type="TEXT"/>
+            <column name="uri" type="TEXT"/>
+            <column name="name" type="TEXT"/>
+            <column name="orgpath" type="TEXT"/>
+            <column name="preflabel" type="TEXT"/>
+        </createTable>
+
+        <createTable tableName="conceptregistrations" schemaName="conceptregistration">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="conceptregistration_pkey"/>
+            </column>
+            <column name="status" type="BIGINT">
+                <constraints referencedTableSchemaName="conceptregistration" referencedTableName="status" referencedColumnNames="id" foreignKeyName="status_fkey"/>
+            </column>
+            <column name="anbefaltTerm" type="TEXT"/>
+            <column name="definisjon" type="TEXT"/>
+            <column name="kilde" type="TEXT"/>
+            <column name="merknad" type="TEXT"/>
+            <!--Publisher-->
+
+            <column name="ansvarligVirksomhet" type="BIGINT">
+                <constraints referencedTableSchemaName="conceptregistration" referencedTableName="virksomhet" referencedColumnNames="id" foreignKeyName="virksomhet_fkey"/>
+            </column>
+
+            <column name="eksempel" type="TEXT"/>
+            <column name="fagområde" type="TEXT"/>
+            <column name="bruksområde" type="TEXT"/>
+            <column name="verdiområde" type="TEXT"/>
+            <column name="kontaktpunkt" type="TEXT"/>
+            <column name="gyldigFOM" type="date"/>
+            <column name="forholdTilKilde" type="TEXT"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="exttno" id="1.1-2">
+        <sql endDelimiter=";">
+            insert into status(id, name) values (1,'utkast');
+            insert into status(id,name) values (2,'godkjent');
+            insert into status(id,name) values (3,'publisert');
+        </sql>
+    </changeSet>
+</databaseChangeLog>
