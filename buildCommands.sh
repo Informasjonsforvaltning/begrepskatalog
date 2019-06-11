@@ -2,7 +2,7 @@
 
 i=0
 
-docker_apps="concept-client"
+docker_apps=""
 
 for docker_app in $docker_apps; do
     i=$((i+1))
@@ -10,7 +10,7 @@ for docker_app in $docker_apps; do
     BUILD_CMD[$i]="( cd $docker_app && ./buildDocker.sh )"
 done
 
-maven_apps=""
+maven_apps="concept-registration"
 
 for maven_app in $maven_apps; do
     i=$((i+1))
