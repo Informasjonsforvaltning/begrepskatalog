@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>no.begrepskatalog</groupId>
-	<artifactId>concept-registration</artifactId>
+	<artifactId>concept-catalogue</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>concept-registration</name>
+	<name>concept-catalogue</name>
 	<description>REST Backend for begrep registration</description>
 
 	<properties>

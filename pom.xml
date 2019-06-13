@@ -10,14 +10,14 @@
     <packaging>pom</packaging>
 
     <name>Begrepsregistrering</name>
-    <description>Begrepsregistrering gir brukerne mulighet til å registrere, endre og publisere sine begreper</description>
+    <description>Begrepsregistrering gir brukerne mulighet til ï¿½ registrere, endre og publisere sine begreper</description>
     <organization>
-        <name>Brønnøysundregistrene</name>
+        <name>Brï¿½nnï¿½ysundregistrene</name>
         <url>http://brreg.no</url>
     </organization>
 
     <modules>
-        <module>concept-registration</module>
+        <module>concept-catalogue</module>
     </modules>
 
 </project>

@@ -11,8 +11,8 @@ services:
       - "5432"
 
 
-  concept-registration:
-    image: dcatno/concept-registration:latest
+  concept-catalogue:
+    image: dcatno/concept-catalogue:latest
     expose:
       - "8080"
     depends_on:

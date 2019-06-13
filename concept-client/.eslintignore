@@ -1,5 +1,0 @@
-dist
-node_modules
-/server
-webpack.dev.config.js
-start.js
