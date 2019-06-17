@@ -18,10 +18,9 @@
         </createTable>
 
         <createTable tableName="virksomhet">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="org_number" type="TEXT">
                 <constraints primaryKey="true" primaryKeyName="virksomhet_pkey"/>
             </column>
-            <column name="orgNumber" type="TEXT"/>
             <column name="uri" type="TEXT"/>
             <column name="name" type="TEXT"/>
             <column name="orgpath" type="TEXT"/>
@@ -29,20 +28,20 @@
         </createTable>
 
         <createTable tableName="conceptregistrations" schemaName="conceptregistration">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="uri" type="TEXT">
                 <constraints primaryKey="true" primaryKeyName="conceptregistration_pkey"/>
             </column>
             <column name="status" type="BIGINT">
                 <constraints referencedTableSchemaName="conceptregistration" referencedTableName="status" referencedColumnNames="id" foreignKeyName="status_fkey"/>
             </column>
-            <column name="anbefaltTerm" type="TEXT"/>
+            <column name="anbefalt_term" type="TEXT"/>
             <column name="definisjon" type="TEXT"/>
             <column name="kilde" type="TEXT"/>
             <column name="merknad" type="TEXT"/>
             <!--Publisher-->
 
-            <column name="ansvarligVirksomhet" type="BIGINT">
-                <constraints referencedTableSchemaName="conceptregistration" referencedTableName="virksomhet" referencedColumnNames="id" foreignKeyName="virksomhet_fkey"/>
+            <column name="ansvarlig_virksomhet" type="VARCHAR">
+                <constraints referencedTableSchemaName="conceptregistration" referencedTableName="virksomhet" referencedColumnNames="org_number" foreignKeyName="virksomhet_fkey"/>
             </column>
 
             <column name="eksempel" type="TEXT"/>
@@ -50,8 +49,8 @@
             <column name="bruksområde" type="TEXT"/>
             <column name="verdiområde" type="TEXT"/>
             <column name="kontaktpunkt" type="TEXT"/>
-            <column name="gyldigFOM" type="date"/>
-            <column name="forholdTilKilde" type="TEXT"/>
+            <column name="gyldig_fom" type="date"/>
+            <column name="forhold_til_kilde" type="TEXT"/>
         </createTable>
     </changeSet>
 
