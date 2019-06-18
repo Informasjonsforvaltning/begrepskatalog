@@ -9,15 +9,15 @@
         </sql>
     </changeSet>
 
-    <changeSet author="exttno" id="1.1-1">
-        <createTable tableName="status">
+    <changeSet author="exttno" id="1.1-1" >
+        <createTable tableName="status" schemaName="conceptregistration">
             <column name="id" type="INTEGER">
                 <constraints primaryKey="true" primaryKeyName="status_pkey"/>
             </column>
             <column name="name" type="TEXT"/>
         </createTable>
 
-        <createTable tableName="virksomhet">
+        <createTable tableName="virksomhet" schemaName="conceptregistration">
             <column name="org_number" type="TEXT">
                 <constraints primaryKey="true" primaryKeyName="virksomhet_pkey"/>
             </column>
