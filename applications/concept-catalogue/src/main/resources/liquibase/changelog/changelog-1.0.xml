@@ -10,14 +10,14 @@
     </changeSet>
 
     <changeSet author="exttno" id="1.1-1">
-        <createTable tableName="status">
+        <createTable tableName="status" schemaName="conceptregistration">
             <column name="id" type="INTEGER">
                 <constraints primaryKey="true" primaryKeyName="status_pkey"/>
             </column>
             <column name="name" type="TEXT"/>
         </createTable>
 
-        <createTable tableName="virksomhet">
+        <createTable tableName="virksomhet" schemaName="conceptregistration">
             <column autoIncrement="true" name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="virksomhet_pkey"/>
             </column>
