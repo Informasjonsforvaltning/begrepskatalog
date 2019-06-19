@@ -74,4 +74,8 @@ public class ConnectionManager {
             System.exit(-1);
         }
     }
+
+    public Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(jdbcURL, username, password);
+    }
 }
