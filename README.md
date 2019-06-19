@@ -1,3 +1,3 @@
 # Concept-catalogue
-Backend for the concept-registration
+Backend for the concept-registration.
 
