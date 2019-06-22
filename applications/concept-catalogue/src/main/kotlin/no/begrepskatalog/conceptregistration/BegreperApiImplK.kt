@@ -7,7 +7,6 @@ import no.begrepskatalog.generated.model.Status
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
@@ -21,10 +20,8 @@ class BegreperApiImplK : BegreperApi {
     @Autowired
     lateinit var sqlStore: SqlStore
 
-    @GetMapping("/registreringer/{orgnumber}")
     override fun getBegrep(httpServletRequest: HttpServletRequest?, @PathVariable orgnumber: String?, status: Status?): ResponseEntity<MutableList<Begrep>> {
         logger.info("Get begrep $orgnumber")
-        logger.info("httpservletrequest is $httpServletRequest")
         var placeholderOrgnumber = "910244132"  //Ramsund og Rognand Revisjon
 
         val result: MutableList<Begrep> = sqlStore.getBegrepByCompany(orgNumber = placeholderOrgnumber)

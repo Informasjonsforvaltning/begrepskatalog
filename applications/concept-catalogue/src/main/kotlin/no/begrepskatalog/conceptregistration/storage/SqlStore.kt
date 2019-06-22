@@ -43,19 +43,21 @@ class SqlStore {
         var success = stmt.execute()
 
         val thisVirksomhet = getVirksomhet(orgNumber)
+        if (thisVirksomhet == null) {
+            logger.info("In GetBegrepByCompany: failed to find virksomhet $orgNumber, can thus not find Begrep")
+            return begrepList
+        }
         logger.info("Retrieving Virksomhet for organization number $orgNumber. Got $thisVirksomhet")
 
         var results = stmt.resultSet
         logger.info("Results object : ${results}")
         while (results.next()) {
-            logger.info("Found a begrep!")
-            begrepList.add(mapToBegrep(results, thisVirksomhet))
+                begrepList.add(mapToBegrep(results, thisVirksomhet))
         }
-        logger.info("Maybe I got begreps")
         return begrepList
     }
 
-    fun getVirksomhet(orgNumber: String): Virksomhet {
+    fun getVirksomhet(orgNumber: String): Virksomhet? {
         var connection = connectionManager.getConnection()
         var stmt = connection.prepareStatement(fetchVirksomhetByOrg_Number)
         stmt.setString(1, orgNumber)
@@ -64,7 +66,7 @@ class SqlStore {
         while (result.next()) {
             return mapVirksomhet(result)
         }
-        throw RuntimeException("Failed to find Virksomhet with id $orgNumber")
+        return null
     }
 
     //Precondition: Virksomhet is never null
