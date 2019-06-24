@@ -130,7 +130,7 @@ class SqlStore {
     fun mapToBegrep(result: ResultSet, virksomhet: Virksomhet): Begrep {
 
         val mappedBegrep = Begrep()
-        mappedBegrep.id = result.getString("id")
+        mappedBegrep.id = result.getString("uri")
         mappedBegrep.status = mapStatus(result.getString("status"))
         mappedBegrep.anbefaltTerm = result.getString("anbefalt_term")
         mappedBegrep.definisjon = result.getString("definisjon")
