@@ -69,7 +69,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Begrep'
+                  $ref: '#/components/schemas/QueryResponse'
   /begreper/{id}:
     get:
       tags:
@@ -145,6 +145,18 @@ paths:
           description: No Content
 components:
   schemas:
+    QueryResponse:
+      type: object
+      properties:
+        _embedded:
+          type: object
+          properties:
+            concepts:
+              type: array
+              items:
+                $ref: '#/components/schemas/Begrep'
+        page:
+          $ref: '#/components/schemas/Page'
     Begrep:
         type: object
         description: Et begrep
@@ -210,3 +222,14 @@ components:
       properties:
         melding:
           type: string
+    Page:
+      type: object
+      properties:
+        number:
+          type: number
+        size:
+          type: number
+        totalElements:
+          type: number
+        totalPages:
+          type: number
