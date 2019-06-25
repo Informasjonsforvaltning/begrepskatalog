@@ -24,12 +24,6 @@ paths:
       description: opprette nytt begrep
       operationId: createBegrep
       responses:
-        '409':
-          description: Ulovlig verdier i begrep
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Feilmelding"
         '201':
           description: Created
           headers:
@@ -37,23 +31,28 @@ paths:
               schema:
                 type: string
               description: url til det nye begrepet
+        '409':
+          description: Ulovlig verdier i begrep
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Feilmelding"
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Begrep'
-
     get:
       tags:
         - begrepskatalog
-      description: Returnerer en samling begreper
+      description: Returnerer en samling begreper for en gitt virksomhet
       operationId: getBegrep
       parameters:
         - name: orgNummer
           in: query
           description: Virksomhetens organisasjonsnummer
-          required: false
+          required: true
           schema:
             type: string
         - name: status
@@ -68,9 +67,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Begrep'
+                $ref: '#/components/schemas/QueryResponse'
   /begreper/{id}:
     get:
       tags:
@@ -109,6 +106,7 @@ paths:
           required: false
           schema:
             type: boolean
+            default: true
       responses:
         '200':
           description: OK
@@ -145,41 +143,53 @@ paths:
           description: No Content
 components:
   schemas:
-    Begrep:
+    QueryResponse:
       type: object
-      description: Et begrep
       properties:
-        id:
-          type: string
-          description: system-generert id (GUID)
-        status:
-          $ref: "#/components/schemas/Status"
-        anbefaltTerm:
-          type: string
-        definisjon:
-          type: string
-        kilde:
-          type: string
-        merknad:
-          type: string
-        ansvarligVirksomhet:
-          $ref: "#/components/schemas/Virksomhet"
-        eksempel:
-          type: string
-        fagområde:
-          type: string
-        bruksområde:
-          type: string
-        verdiområde:
-          type: string
-          description: omfang
-        kontaktpunkt:
-          type: string
-        gyldigFom:
-          type: string
-          format: date
-        forholdTilKilde:
-          type: string
+        _embedded:
+          type: object
+          properties:
+            concepts:
+              type: array
+              items:
+                $ref: '#/components/schemas/Begrep'
+        page:
+          $ref: '#/components/schemas/Page'
+    Begrep:
+        type: object
+        description: Et begrep
+        properties:
+          id:
+            type: string
+            description: system-generert id (GUID)
+          status:
+            $ref: "#/components/schemas/Status"
+          anbefaltTerm:
+            type: string
+          definisjon:
+            type: string
+          kilde:
+            type: string
+          merknad:
+            type: string
+          ansvarligVirksomhet:
+            $ref: "#/components/schemas/Virksomhet"
+          eksempel:
+            type: string
+          fagområde:
+            type: string
+          bruksområde:
+            type: string
+          verdiområde:
+            type: string
+            description: omfang
+          kontaktpunkt:
+            type: string
+          gyldigFom:
+            type: string
+            format: date
+          forholdTilKilde:
+            type: string
     Virksomhet:
       type: object
       description: Ansvarlig virksomhet for begrepet [dct:publisher]
@@ -200,13 +210,24 @@ components:
     Status:
       type: string
       enum:
-        - utkast
-        - godkjent
-        - publisert
+      - utkast
+      - godkjent
+      - publisert
     Feilmelding:
       type: object
       required:
-        - melding
+      - melding
       properties:
         melding:
           type: string
+    Page:
+      type: object
+      properties:
+        number:
+          type: number
+        size:
+          type: number
+        totalElements:
+          type: number
+        totalPages:
+          type: number
