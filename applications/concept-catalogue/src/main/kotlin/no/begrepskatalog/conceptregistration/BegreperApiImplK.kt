@@ -7,12 +7,14 @@ import no.begrepskatalog.generated.model.Status
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 
 
 @RestController
+@CrossOrigin(value = "*")
 class BegreperApiImplK : BegreperApi {
 
     private val logger = LoggerFactory.getLogger(BegreperApiImplK::class.java)
