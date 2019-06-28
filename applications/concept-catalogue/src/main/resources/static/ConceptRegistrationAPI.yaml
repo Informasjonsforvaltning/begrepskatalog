@@ -88,7 +88,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Begrep"
-    put:
+    patch:
       tags:
         - begrepskatalog
       description: Oppdatere detaljer på et begrep
