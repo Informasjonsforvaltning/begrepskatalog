@@ -36,37 +36,41 @@ class SqlStore {
         logger.info("Retrieving concepts for organization $orgNumber.")
         var begrepList = mutableListOf<Begrep>()
 
-        var connection = connectionManager.getConnection()
+        connectionManager.getConnection().use{
+            var stmt = it.prepareStatement(fetchBegrepByCompanySQL)
+            stmt.setString(1, orgNumber)
+            var success = stmt.execute()
 
-        var stmt = connection.prepareStatement(fetchBegrepByCompanySQL)
-        stmt.setString(1, orgNumber)
-        var success = stmt.execute()
 
-        val thisVirksomhet = getVirksomhet(orgNumber)
-        if (thisVirksomhet == null) {
-            logger.info("In GetBegrepByCompany: failed to find virksomhet $orgNumber, can thus not find Begrep")
+            val thisVirksomhet = getVirksomhet(orgNumber)
+            if (thisVirksomhet == null) {
+                logger.info("In GetBegrepByCompany: failed to find virksomhet $orgNumber, can thus not find Begrep")
+                return begrepList
+            }
+            logger.info("Retrieving Virksomhet for organization number $orgNumber. Got $thisVirksomhet")
+
+            var results = stmt.resultSet
+            logger.info("Results object : ${results}")
+            while (results.next()) {
+                    begrepList.add(mapToBegrep(results, thisVirksomhet))
+            }
+            it.close()
             return begrepList
         }
-        logger.info("Retrieving Virksomhet for organization number $orgNumber. Got $thisVirksomhet")
-
-        var results = stmt.resultSet
-        logger.info("Results object : ${results}")
-        while (results.next()) {
-                begrepList.add(mapToBegrep(results, thisVirksomhet))
-        }
-        return begrepList
     }
 
     fun getVirksomhet(orgNumber: String): Virksomhet? {
-        var connection = connectionManager.getConnection()
-        var stmt = connection.prepareStatement(fetchVirksomhetByOrg_Number)
-        stmt.setString(1, orgNumber)
-        var success = stmt.execute()
-        var result = stmt.resultSet
-        while (result.next()) {
-            return mapVirksomhet(result)
+        connectionManager.getConnection().use{
+            var stmt = it.prepareStatement(fetchVirksomhetByOrg_Number)
+            stmt.setString(1, orgNumber)
+            var success = stmt.execute()
+            var result = stmt.resultSet
+            while (result.next()) {
+                return mapVirksomhet(result)
+            }
+            it.close()
+            return null
         }
-        return null
     }
 
     //Precondition: Virksomhet is never null
@@ -75,43 +79,45 @@ class SqlStore {
 
         val virksomhet = begrep.ansvarligVirksomhet
 
-        var connection = connectionManager.getConnection()
+        connectionManager.getConnection().use {
 
-        val virksomhetStmt = connection.prepareStatement(saveVirksomhetSQL)
-        virksomhetStmt.setString(1, virksomhet.id) //org number
-        virksomhetStmt.setString(2, virksomhet.uri)
-        virksomhetStmt.setString(3, virksomhet.navn)
-        virksomhetStmt.setString(4, virksomhet.orgPath)
-        virksomhetStmt.setString(5, virksomhet.prefLabel)
+            val virksomhetStmt = it.prepareStatement(saveVirksomhetSQL)
+            virksomhetStmt.setString(1, virksomhet.id) //org number
+            virksomhetStmt.setString(2, virksomhet.uri)
+            virksomhetStmt.setString(3, virksomhet.navn)
+            virksomhetStmt.setString(4, virksomhet.orgPath)
+            virksomhetStmt.setString(5, virksomhet.prefLabel)
 
-        val successVirksomhet = virksomhetStmt.execute()
-        logger.info("Status of save virksomhet ${virksomhet.id}, success: $successVirksomhet ")
+            val successVirksomhet = virksomhetStmt.execute()
+            logger.info("Status of save virksomhet ${virksomhet.id}, success: $successVirksomhet ")
 
-        try {
-            val begrepStmt = connection.prepareStatement(saveBegrepSQL)
-            begrepStmt.setString(1, begrep.id)
-            begrepStmt.setInt(2, mapStatusToInt(begrep.status))
-            begrepStmt.setString(3, begrep.anbefaltTerm)
-            begrepStmt.setString(4, begrep.definisjon)
-            begrepStmt.setString(5, begrep.kilde)
-            begrepStmt.setString(6, begrep.merknad)
-            begrepStmt.setString(7, virksomhet.id)
-            begrepStmt.setString(8, begrep.eksempel)
-            begrepStmt.setString(9, begrep.fagområde)
-            begrepStmt.setString(10, begrep.bruksområde)
-            begrepStmt.setString(11, begrep.verdiområde)
-            begrepStmt.setString(12, begrep.kontaktpunkt)
-            begrepStmt.setDate(13, Date.valueOf(begrep.gyldigFom))
-            begrepStmt.setString(14, begrep.forholdTilKilde)
+            try {
+                val begrepStmt = it.prepareStatement(saveBegrepSQL)
+                begrepStmt.setString(1, begrep.id)
+                begrepStmt.setInt(2, mapStatusToInt(begrep.status))
+                begrepStmt.setString(3, begrep.anbefaltTerm)
+                begrepStmt.setString(4, begrep.definisjon)
+                begrepStmt.setString(5, begrep.kilde)
+                begrepStmt.setString(6, begrep.merknad)
+                begrepStmt.setString(7, virksomhet.id)
+                begrepStmt.setString(8, begrep.eksempel)
+                begrepStmt.setString(9, begrep.fagområde)
+                begrepStmt.setString(10, begrep.bruksområde)
+                begrepStmt.setString(11, begrep.verdiområde)
+                begrepStmt.setString(12, begrep.kontaktpunkt)
+                begrepStmt.setDate(13, Date.valueOf(begrep.gyldigFom))
+                begrepStmt.setString(14, begrep.forholdTilKilde)
 
-            val succesBegrep = begrepStmt.execute()
+                val succesBegrep = begrepStmt.execute()
 
-            return succesBegrep
-        } catch (t: Throwable) {
-            t.printStackTrace()
-            logger.error(t.toString())
+                return succesBegrep
+            } catch (t: Throwable) {
+                t.printStackTrace()
+                logger.error(t.toString())
+            }
+            it.close()
+            return false
         }
-        return false
     }
 
     fun mapStatusToInt(status: Status): Int {
