@@ -27,7 +27,7 @@ class SqlStore {
             " ON CONFLICT (org_number) DO UPDATE " +
             " SET uri = excluded.uri;"
 
-    private val saveBegrepSQL = "insert into conceptregistrations(uri,status,anbefalt_term,definisjon,kilde,merknad, " +
+    private val saveBegrepSQL = "insert into conceptregistrations(id,status,anbefalt_term,definisjon,kilde,merknad, " +
             " ansvarlig_virksomhet,eksempel,fagområde,bruksområde, verdiområde,kontaktpunkt,gyldig_fom,forhold_til_kilde) " +
             " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 
