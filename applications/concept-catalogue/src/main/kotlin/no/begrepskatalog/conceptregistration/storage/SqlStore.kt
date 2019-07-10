@@ -36,7 +36,7 @@ class SqlStore {
         logger.info("Retrieving concepts for organization $orgNumber.")
         var begrepList = mutableListOf<Begrep>()
 
-        connectionManager.getConnection().use{
+        connectionManager.getConnection().use {
             var stmt = it.prepareStatement(fetchBegrepByCompanySQL)
             stmt.setString(1, orgNumber)
             var success = stmt.execute()
@@ -52,7 +52,7 @@ class SqlStore {
             var results = stmt.resultSet
             logger.info("Results object : ${results}")
             while (results.next()) {
-                    begrepList.add(mapToBegrep(results, thisVirksomhet))
+                begrepList.add(mapToBegrep(results, thisVirksomhet))
             }
             it.close()
             return begrepList
@@ -60,7 +60,7 @@ class SqlStore {
     }
 
     fun getVirksomhet(orgNumber: String): Virksomhet? {
-        connectionManager.getConnection().use{
+        connectionManager.getConnection().use {
             var stmt = it.prepareStatement(fetchVirksomhetByOrg_Number)
             stmt.setString(1, orgNumber)
             var success = stmt.execute()
