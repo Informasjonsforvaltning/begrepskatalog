@@ -27,32 +27,32 @@ class ConceptRegistrationApplicationTests {
     fun contextLoads() {
     }
 
-    @Ignore
     @Test
     fun buildSmallSetOfTestData() {
         logger.info("Building test data!")
 
-        val testVirksomhet = Virksomhet()
-        testVirksomhet.id = "910244132"
-        testVirksomhet.navn = "Ramsund og Rognand revisjon"
-        testVirksomhet.orgPath = "/helt/feil/dummy/path"
-        testVirksomhet.prefLabel = "preflabel"
-        testVirksomhet.uri = "ramsumdURI"
+        val testVirksomhet = Virksomhet().apply {
+            id = "910244132"
+            navn = "Ramsund og Rognand revisjon"
+            orgPath = "/helt/feil/dummy/path"
+            prefLabel =  "preflabel"
+            uri = "ramsumdURI"
+        }
 
         //Note that a company can have many begrep, but we do not want to create more than 1 in this test
         val begreps = sqlStore.getBegrepByCompany("910244132")
 
         if (begreps.isEmpty()) {
-            val testBegrep = Begrep()
-            testBegrep.anbefaltTerm = "eplesaft"
-            testBegrep.id = java.util.UUID.randomUUID().toString()
-            testBegrep.ansvarligVirksomhet = testVirksomhet
-            testBegrep.bruksområde = "Særavgift/Særavgift - Avgift på alkoholfrie drikkevarer"
-            testBegrep.definisjon = "saft uten tilsatt sukker som er basert på epler"
-            testBegrep.eksempel = "DummyEksempel"
-            //testBegrep.id = "511ffd3b-b833-4f12-941d-8aa092265a18"
-            testBegrep.status = Status.UTKAST
-            testBegrep.gyldigFom = LocalDate.now()
+            val testBegrep = Begrep().apply {
+                anbefaltTerm = "eplesaft"
+                id = java.util.UUID.randomUUID().toString()
+                ansvarligVirksomhet = testVirksomhet
+                bruksområde = "Særavgift/Særavgift - Avgift på alkoholfrie drikkevarer"
+                definisjon = "saft uten tilsatt sukker som er basert på epler"
+                eksempel = "DummyEksempel"
+                status = Status.UTKAST
+                gyldigFom = LocalDate.now()
+            }
 
             sqlStore.saveBegrep(testBegrep)
         }
