@@ -5,7 +5,6 @@ import no.begrepskatalog.generated.model.Status
 import no.begrepskatalog.generated.model.Virksomhet
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.sql.Date
 import java.sql.ResultSet
@@ -13,7 +12,7 @@ import java.sql.ResultSet
 private val logger: Logger = LoggerFactory.getLogger(SqlStore::class.java)
 
 @Component
-class SqlStore(val connectionManager: ConnectionManager ) {
+class SqlStore(val connectionManager: ConnectionManager) {
 
     private val fetchBegrepByCompanySQL = "select * from conceptregistrations c LEFT JOIN  conceptregistration.status s on c.status = s.id where ansvarlig_virksomhet = ? "
 
