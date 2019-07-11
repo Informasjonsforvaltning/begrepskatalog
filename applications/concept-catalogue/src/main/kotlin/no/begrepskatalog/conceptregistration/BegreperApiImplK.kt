@@ -36,8 +36,8 @@ class BegreperApiImplK : BegreperApi {
 
     override fun createBegrep(httpServletRequest: HttpServletRequest, @ApiParam(value = "", required = true) @Valid @RequestBody begrep: Begrep): ResponseEntity<Void> {
         logger.info("Create Begrep called with begrep id  ${begrep.id}")
-        var successfulStore = sqlStore.saveBegrep(begrep)
-        if (successfulStore) {
+        var storedBegrep = sqlStore.saveBegrep(begrep)
+        if (storedBegrep != null) {
             logger.info("Stored begrep ${begrep.id}")
         } else {
             logger.info("Failed to store begrep. Reason should be in another log line.")

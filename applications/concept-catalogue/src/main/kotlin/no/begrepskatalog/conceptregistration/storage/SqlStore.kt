@@ -74,22 +74,32 @@ class SqlStore {
     }
 
     //Precondition: Virksomhet is never null
-    fun saveBegrep(begrep: Begrep): Boolean {
-        logger.info("storing begrep ${begrep.id} to db")
+    fun saveBegrep(begrep: Begrep): Begrep? {
+
+        val generatedId = java.util.UUID.randomUUID().toString()
+        begrep.id = generatedId
+
+        logger.info("Trying to store begrep ${generatedId} to db")
 
         val virksomhet = begrep.ansvarligVirksomhet
 
         connectionManager.getConnection().use {
 
-            val virksomhetStmt = it.prepareStatement(saveVirksomhetSQL)
-            virksomhetStmt.setString(1, virksomhet.id) //org number
-            virksomhetStmt.setString(2, virksomhet.uri)
-            virksomhetStmt.setString(3, virksomhet.navn)
-            virksomhetStmt.setString(4, virksomhet.orgPath)
-            virksomhetStmt.setString(5, virksomhet.prefLabel)
+            //save virksomhet if it is not already known
+            val storedVirksomhet = getVirksomhet(virksomhet.id)
+            if (storedVirksomhet == null) {
+                val virksomhetStmt = it.prepareStatement(saveVirksomhetSQL)
+                virksomhetStmt.setString(1, virksomhet.id) //org number
+                virksomhetStmt.setString(2, virksomhet.uri)
+                virksomhetStmt.setString(3, virksomhet.navn)
+                virksomhetStmt.setString(4, virksomhet.orgPath)
+                virksomhetStmt.setString(5, virksomhet.prefLabel)
 
-            val successVirksomhet = virksomhetStmt.execute()
-            logger.info("Status of save virksomhet ${virksomhet.id}, success: $successVirksomhet ")
+                virksomhetStmt.execute()
+                logger.info("Virksomhet ${virksomhet.id} stored")
+            } else {
+                logger.info("Virksomhet ${storedVirksomhet.id} already stored")
+            }
 
             try {
                 val begrepStmt = it.prepareStatement(saveBegrepSQL)
@@ -105,18 +115,22 @@ class SqlStore {
                 begrepStmt.setString(10, begrep.bruksområde)
                 begrepStmt.setString(11, begrep.verdiområde)
                 begrepStmt.setString(12, begrep.kontaktpunkt)
-                begrepStmt.setDate(13, Date.valueOf(begrep.gyldigFom))
+                if (begrep.gyldigFom != null) {
+                    begrepStmt.setDate(13, Date.valueOf(begrep.gyldigFom))
+                } else {
+                    begrepStmt.setDate(13, null)
+                }
                 begrepStmt.setString(14, begrep.forholdTilKilde)
 
-                val succesBegrep = begrepStmt.execute()
-
-                return succesBegrep
+                begrepStmt.execute()
+                logger.info("Stored begrep ${begrep.id}")
+                return begrep
             } catch (t: Throwable) {
                 t.printStackTrace()
                 logger.error(t.toString())
             }
             it.close()
-            return false
+            return null
         }
     }
 
@@ -148,7 +162,9 @@ class SqlStore {
         mappedBegrep.bruksområde = result.getString("bruksområde")
         mappedBegrep.verdiområde = result.getString("verdiområde")
         mappedBegrep.kontaktpunkt = result.getString("kontaktpunkt")
-        mappedBegrep.gyldigFom = result.getDate("gyldig_FOM").toLocalDate()
+        if (result.getDate("gyldig_FOM") != null) {
+            mappedBegrep.gyldigFom = result.getDate("gyldig_FOM").toLocalDate()
+        }
         mappedBegrep.forholdTilKilde = result.getString("forhold_til_kilde")
 
         return mappedBegrep
