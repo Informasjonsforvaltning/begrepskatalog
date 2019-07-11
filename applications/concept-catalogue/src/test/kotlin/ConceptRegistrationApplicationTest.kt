@@ -35,10 +35,12 @@ class ConceptRegistrationApplicationTests {
         return testVirksomhet
     }
 
+    @Ignore
     @Test
     fun contextLoads() {
     }
 
+    @Ignore
     @Test
     fun buildSmallSetOfTestData() {
         logger.info("Building test data!")
@@ -61,7 +63,7 @@ class ConceptRegistrationApplicationTests {
             sqlStore.saveBegrep(testBegrep)
         }
     }
-
+    @Ignore
     @Test
     fun saveEmptyBegrepToTestCreationOfId() {
         val emptyBegrep = Begrep().apply {
