@@ -10,14 +10,10 @@ import org.springframework.stereotype.Component
 import java.sql.Date
 import java.sql.ResultSet
 
+private val logger: Logger = LoggerFactory.getLogger(SqlStore::class.java)
 
 @Component
-class SqlStore {
-
-    @Autowired
-    lateinit var connectionManager: ConnectionManager
-
-    private val logger: Logger = LoggerFactory.getLogger(javaClass)
+class SqlStore(val connectionManager: ConnectionManager ) {
 
     private val fetchBegrepByCompanySQL = "select * from conceptregistrations c LEFT JOIN  conceptregistration.status s on c.status = s.id where ansvarlig_virksomhet = ? "
 

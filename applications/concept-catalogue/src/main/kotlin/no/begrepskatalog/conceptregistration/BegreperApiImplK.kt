@@ -16,15 +16,11 @@ import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
+private val logger = LoggerFactory.getLogger(BegreperApiImplK::class.java)
 
 @RestController
 @CrossOrigin(value = "*")
-class BegreperApiImplK : BegreperApi {
-
-    private val logger = LoggerFactory.getLogger(BegreperApiImplK::class.java)
-
-    @Autowired
-    lateinit var sqlStore: SqlStore
+class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
 
     override fun getBegrep(httpServletRequest: HttpServletRequest?, @PathVariable orgnumber: String?, status: Status?): ResponseEntity<MutableList<Begrep>> {
         logger.info("Get begrep $orgnumber")
