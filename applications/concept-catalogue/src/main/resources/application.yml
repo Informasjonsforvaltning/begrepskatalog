@@ -3,6 +3,8 @@ spring:
     url: ${FDK_SQL_JDBC_CONNECTION:jdbc:postgresql://localhost:5432/postgres?currentSchema=conceptregistration}
     username: ${FDK_SQL_USERNAME}
     password: ${FDK_SQL_PASSWORD}
+application:
+  baseURL: https://registrering-begrep.ut1.fellesdatakatalog.brreg.no/
 
 ---
 
