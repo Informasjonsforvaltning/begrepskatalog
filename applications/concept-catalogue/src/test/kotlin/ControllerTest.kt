@@ -33,24 +33,19 @@ class ControllerTest {
 
     }
 
-    fun makeBegrep(): Begrep {
+    fun makeBegrep(): Begrep =
+            Begrep().apply {
+                id = "1c770979-34b0-439c-a7cb-adacb3619927"
+                definisjon = "testbegrep"
+                ansvarligVirksomhet = createTestVirksomhet()
+            }
 
-        val begrep = Begrep()
-        begrep.id = "1c770979-34b0-439c-a7cb-adacb3619927"
-        begrep.definisjon = "testbegrep"
-        begrep.ansvarligVirksomhet = createTestVirksomhet()
-        return begrep
-    }
-
-    fun createTestVirksomhet(): no.begrepskatalog.generated.model.Virksomhet {
-
-        val testVirksomhet = Virksomhet().apply {
-            id = "910244132"
-            navn = "Ramsund og Rognand revisjon"
-            orgPath = "/helt/feil/dummy/path"
-            prefLabel = "preflabel"
-            uri = "ramsumdURI"
-        }
-        return testVirksomhet
-    }
+    fun createTestVirksomhet(): no.begrepskatalog.generated.model.Virksomhet =
+            Virksomhet().apply {
+                id = "910244132"
+                navn = "Ramsund og Rognand revisjon"
+                orgPath = "/helt/feil/dummy/path"
+                prefLabel = "preflabel"
+                uri = "ramsumdURI"
+            }
 }
