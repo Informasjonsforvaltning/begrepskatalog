@@ -24,7 +24,7 @@ private val logger = LoggerFactory.getLogger(BegreperApiImplK::class.java)
 class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
 
     @Value("\${application.baseURL}")
-    lateinit var baseURL : String
+    lateinit var baseURL: String
 
     override fun getBegrep(httpServletRequest: HttpServletRequest?, @PathVariable orgnumber: String?, status: Status?): ResponseEntity<MutableList<Begrep>> {
         logger.info("Get begrep $orgnumber")
@@ -36,16 +36,17 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
 
     override fun createBegrep(httpServletRequest: HttpServletRequest, @ApiParam(value = "", required = true) @Valid @RequestBody begrep: Begrep): ResponseEntity<Void> {
 
-        var storedBegrep = sqlStore.saveBegrep(begrep)
-        if (storedBegrep != null) {
-            logger.info("Stored begrep ${begrep.id}")
-            val headers = HttpHeaders()
-            val urlForAccessingThisBegrepsRegistration = baseURL + "/" + storedBegrep.ansvarligVirksomhet.id + "/" + storedBegrep.id
-            headers.add(HttpHeaders.LOCATION, urlForAccessingThisBegrepsRegistration)
-            return ResponseEntity(headers, HttpStatus.CREATED)
-        } else {
-            logger.info("Failed to store begrep. Reason should be in another log line.")
-            return ResponseEntity(HttpStatus.CONFLICT)
-        }
+        return sqlStore.saveBegrep(begrep)
+                ?.let {
+                    logger.info("Stored begrep ${it.id}")
+                    val headers = HttpHeaders()
+                    val urlForAccessingThisBegrepsRegistration = baseURL + "/" + it.ansvarligVirksomhet.id + "/" + it.id
+                    headers.add(HttpHeaders.LOCATION, urlForAccessingThisBegrepsRegistration)
+                    ResponseEntity<Void>(headers, HttpStatus.CREATED)
+                }
+                ?: let {
+                    logger.info("Failed to store begrep. Reason should be in another log line.")
+                    ResponseEntity<Void>(HttpStatus.CONFLICT)
+                }
     }
 }
