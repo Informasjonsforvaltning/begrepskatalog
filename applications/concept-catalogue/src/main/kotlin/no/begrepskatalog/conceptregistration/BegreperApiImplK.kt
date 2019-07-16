@@ -10,10 +10,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.CrossOrigin
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -48,5 +45,29 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
                     logger.info("Failed to store begrep. Reason should be in another log line.")
                     ResponseEntity<Void>(HttpStatus.CONFLICT)
                 }
+    }
+
+    override fun setBegrepById(httpServletRequest: HttpServletRequest, @ApiParam(value = "id", required = true) id: String, @ApiParam(value = "", required = true) @Valid @RequestBody begrep: Begrep, @ApiParam(value = "Om begrepet skal valideres") @Valid @RequestParam(value = "validate", required = false) validate: Boolean): ResponseEntity<Begrep> {
+        //We must have an ID that already exists, AND a virksomhet
+        if (!sqlStore.begrepExists(begrep)) {
+            throw RuntimeException("Attempt to PUT begrep that does not already exist. Begrep id ${begrep.id}")
+        }
+
+        if (begrep.ansvarligVirksomhet == null) {
+            throw RuntimeException("Attempt to PUT begrep with no accompanying Ansvarlig Virksomhet")
+        }
+
+        if (begrep.status == Status.UTKAST) {
+            sqlStore.saveBegrep(begrep)
+            return ResponseEntity(HttpStatus.OK)
+        } else {
+            if (begrep.anbefaltTerm != null && begrep.definisjon != null) {
+                sqlStore.saveBegrep(begrep)
+                logger.info("Begrep $begrep.id has passed validation for non draft begrep and has been saved ")
+                return ResponseEntity(HttpStatus.OK)
+            }
+        }
+
+        return ResponseEntity(HttpStatus.CONFLICT)
     }
 }

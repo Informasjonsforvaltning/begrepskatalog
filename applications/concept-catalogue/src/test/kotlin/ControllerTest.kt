@@ -8,6 +8,7 @@ import no.begrepskatalog.generated.model.Virksomhet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
+import java.lang.RuntimeException
 import javax.servlet.http.HttpServletRequest
 
 
@@ -15,11 +16,7 @@ class ControllerTest {
 
     @Test
     fun test_generation_of_urls_for_new_begrep() {
-        val sqlStoreMock: SqlStore = mock {
-            on {
-                saveBegrep(Begrep())
-            } doReturn makeBegrep()
-        }
+        val sqlStoreMock: SqlStore = prepareSqlStoreMock()
         val httpServletRequestMock: HttpServletRequest = mock()
 
         val begreperApiImplK = BegreperApiImplK(sqlStoreMock)
@@ -30,7 +27,38 @@ class ControllerTest {
         assertNotNull(retValue)
         assertNotNull(retValue.headers)
         assertEquals(retValue.headers.get("Location")?.get(0), begreperApiImplK.baseURL + "/" + makeBegrep().ansvarligVirksomhet.id + "/" + makeBegrep().id)
+    }
 
+    @Test(expected = RuntimeException::class)
+    fun test_validations_begrep_does_not_exist() {
+        val sqlStoreMock: SqlStore = prepareSqlStoreMock()
+
+        val emptyBegrep = Begrep()
+
+        val httpServletRequestMock: HttpServletRequest = mock()
+        val begreperApiImplK = BegreperApiImplK(sqlStoreMock)
+        val retValue = begreperApiImplK.setBegrepById(httpServletRequestMock,"esf3",emptyBegrep,true)
+    }
+
+    @Test(expected = RuntimeException::class)
+    fun test_validations_begrep_has_not_ansvarligVirksomhet() {
+        val sqlStoreMock: SqlStore = prepareSqlStoreMock()
+
+        val someBegrep = makeBegrep()//Same as mock pretends to save
+        someBegrep.ansvarligVirksomhet = null
+
+        val httpServletRequestMock: HttpServletRequest = mock()
+        val begreperApiImplK = BegreperApiImplK(sqlStoreMock)
+        val retValue = begreperApiImplK.setBegrepById(httpServletRequestMock,"esf3",someBegrep,true)
+    }
+
+    private fun prepareSqlStoreMock(): SqlStore {
+        val sqlStoreMock: SqlStore = mock {
+            on {
+                saveBegrep(Begrep())
+            } doReturn makeBegrep()
+        }
+        return sqlStoreMock
     }
 
     fun makeBegrep(): Begrep =
