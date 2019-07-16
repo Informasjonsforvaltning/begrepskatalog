@@ -4,15 +4,16 @@ import no.begrepskatalog.conceptregistration.storage.SqlStore
 import no.begrepskatalog.generated.model.Begrep
 import no.begrepskatalog.generated.model.Status
 import no.begrepskatalog.generated.model.Virksomhet
+import org.junit.Assert.*
 import org.junit.Test
 import org.junit.Ignore
-import org.junit.Assert.assertNotNull
 import org.junit.runner.RunWith
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit4.SpringRunner
 import java.time.LocalDate
+import java.util.*
 
 @RunWith(SpringRunner::class)
 @SpringBootTest
@@ -34,12 +35,10 @@ class ConceptRegistrationApplicationTests {
         }
         return testVirksomhet
     }
-
     @Ignore
     @Test
     fun contextLoads() {
     }
-
     @Ignore
     @Test
     fun buildSmallSetOfTestData() {
@@ -73,5 +72,28 @@ class ConceptRegistrationApplicationTests {
         val savedBegrep = sqlStore.saveBegrep(emptyBegrep)
         assertNotNull(savedBegrep)
         assertNotNull(savedBegrep?.id)
+    }
+    @Ignore
+    @Test
+    fun testThatExistsWork() {
+        val emptyBegrep = Begrep().apply {
+            status = Status.UTKAST
+            ansvarligVirksomhet = createTestVirksomhet()
+        }
+        val savedBegrep = sqlStore.saveBegrep(emptyBegrep)
+        if (savedBegrep != null) {
+            assertEquals(true, sqlStore.begrepExists(savedBegrep))
+        } else {
+            fail()
+        }
+    }
+    @Ignore
+    @Test
+    fun testExistsNotFalsePositive() {
+        val emptyBegrep = Begrep().apply {
+            status = Status.UTKAST
+            id = UUID.randomUUID().toString()
+        }
+        assertFalse(sqlStore.begrepExists(emptyBegrep))
     }
 }

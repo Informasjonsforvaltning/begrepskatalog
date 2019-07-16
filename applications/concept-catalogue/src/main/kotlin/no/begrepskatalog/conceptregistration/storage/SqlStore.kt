@@ -16,6 +16,8 @@ class SqlStore(val connectionManager: ConnectionManager) {
 
     private val fetchBegrepByCompanySQL = "select * from conceptregistrations c LEFT JOIN  conceptregistration.status s on c.status = s.id where ansvarlig_virksomhet = ? "
 
+    private val checkExistanceOfBegrep = "select * from conceptregistrations c where id = ?"
+
     private val fetchVirksomhetByOrg_Number = "select * from virksomhet where org_number = ?"
 
     private val saveVirksomhetSQL = "insert into virksomhet(org_number,uri,name,orgpath,preflabel) values (?,?,?,?,?) " +
@@ -65,6 +67,25 @@ class SqlStore(val connectionManager: ConnectionManager) {
             }
             it.close()
             return null
+        }
+    }
+
+    fun begrepExists(begrep: Begrep): Boolean {
+        if (begrep == null || begrep.id == null) {
+            return false
+        }
+
+        connectionManager.getConnection().use {
+            var stmt = it.prepareStatement(checkExistanceOfBegrep)
+            stmt.setString(1, begrep.id)
+            stmt.execute()
+            var result = stmt.resultSet
+            if (result.next()) {//There was a result
+                it.close()
+                return true
+            }
+            it.close()
+            return false
         }
     }
 
