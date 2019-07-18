@@ -37,7 +37,7 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
                 ?.let {
                     logger.info("Stored begrep ${it.id}")
                     val headers = HttpHeaders()
-                    val urlForAccessingThisBegrepsRegistration = baseURL + "/" + it.ansvarligVirksomhet.id + "/" + it.id
+                    val urlForAccessingThisBegrepsRegistration = baseURL + it.ansvarligVirksomhet.id + "/" + it.id
                     headers.add(HttpHeaders.LOCATION, urlForAccessingThisBegrepsRegistration)
                     ResponseEntity<Void>(headers, HttpStatus.CREATED)
                 }

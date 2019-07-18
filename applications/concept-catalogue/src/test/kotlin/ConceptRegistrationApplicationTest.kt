@@ -35,10 +35,12 @@ class ConceptRegistrationApplicationTests {
         }
         return testVirksomhet
     }
+
     @Ignore
     @Test
     fun contextLoads() {
     }
+
     @Ignore
     @Test
     fun buildSmallSetOfTestData() {
@@ -48,19 +50,23 @@ class ConceptRegistrationApplicationTests {
         val begreps = sqlStore.getBegrepByCompany("910244132")
 
         if (begreps.isEmpty()) {
-            val testBegrep = Begrep().apply {
-                anbefaltTerm = "eplesaft"
-                id = java.util.UUID.randomUUID().toString()
-                ansvarligVirksomhet = createTestVirksomhet()
-                bruksområde = "Særavgift/Særavgift - Avgift på alkoholfrie drikkevarer"
-                definisjon = "saft uten tilsatt sukker som er basert på epler"
-                eksempel = "DummyEksempel"
-                status = Status.UTKAST
-                gyldigFom = LocalDate.now()
-            }
-
+            val testBegrep = createBegrep()
             sqlStore.saveBegrep(testBegrep)
         }
+    }
+
+    private fun createBegrep(): Begrep {
+        val testBegrep = Begrep().apply {
+            anbefaltTerm = "eplesaft"
+            id = UUID.randomUUID().toString()
+            ansvarligVirksomhet = createTestVirksomhet()
+            bruksområde = "Særavgift/Særavgift - Avgift på alkoholfrie drikkevarer"
+            definisjon = "saft uten tilsatt sukker som er basert på epler"
+            eksempel = "DummyEksempel"
+            status = Status.UTKAST
+            gyldigFom = LocalDate.now()
+        }
+        return testBegrep
     }
     @Ignore
     @Test
@@ -72,6 +78,14 @@ class ConceptRegistrationApplicationTests {
         val savedBegrep = sqlStore.saveBegrep(emptyBegrep)
         assertNotNull(savedBegrep)
         assertNotNull(savedBegrep?.id)
+    }
+
+    @Ignore
+    @Test
+    fun savePublishedBegrep() {
+        var testBegrep = createBegrep()
+        testBegrep.status = Status.PUBLISERT
+        sqlStore.saveBegrep(testBegrep)
     }
     @Ignore
     @Test
