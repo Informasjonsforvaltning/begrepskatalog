@@ -14,11 +14,19 @@ private val logger: Logger = LoggerFactory.getLogger(SqlStore::class.java)
 @Component
 class SqlStore(val connectionManager: ConnectionManager) {
 
+    private val DB_STATUS_DRAFT = 1
+
+    private val DB_STATUS_ACCEPTED = 2
+
+    private val DB_STATUS_PUBLISHED = 3
+
     private val fetchBegrepByCompanySQL = "select * from conceptregistrations c LEFT JOIN  conceptregistration.status s on c.status = s.id where ansvarlig_virksomhet = ? "
 
     private val checkExistanceOfBegrep = "select * from conceptregistrations c where id = ?"
 
     private val fetchVirksomhetByOrg_Number = "select * from virksomhet where org_number = ?"
+
+    private val fetchAllVirksomheter = "select * from virksomhet"
 
     private val saveVirksomhetSQL = "insert into virksomhet(org_number,uri,name,orgpath,preflabel) values (?,?,?,?,?) " +
             " ON CONFLICT (org_number) DO UPDATE " +
@@ -27,6 +35,46 @@ class SqlStore(val connectionManager: ConnectionManager) {
     private val saveBegrepSQL = "insert into conceptregistrations(id,status,anbefalt_term,definisjon,kilde,merknad, " +
             " ansvarlig_virksomhet,eksempel,fagområde,bruksområde, verdiområde,kontaktpunkt,gyldig_fom,forhold_til_kilde) " +
             " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+
+    private val getAllPublishedRegistrationsSQL = "select * from conceptregistrations c LEFT JOIN  conceptregistration.status s on c.status = s.id where c.status = " + DB_STATUS_PUBLISHED
+
+    fun getAllPublishedBegrep() : List<Begrep>{
+        val begrepList = mutableListOf<Begrep>()
+
+        val allVirksomheter = getAllVirksomheter()
+
+        connectionManager.getConnection().use {
+            var stmt = it.prepareStatement(getAllPublishedRegistrationsSQL)
+            stmt.execute()
+            var result = stmt.resultSet
+            while (result.next()) {
+                val virksomhetId = result.getString("ansvarlig_virksomhet")
+                val virksomhet = allVirksomheter.get(virksomhetId)
+                if (virksomhet!= null) {
+                    begrepList.add(mapToBegrep(result,virksomhet))
+                } else {
+                    throw java.lang.RuntimeException("Database had begrep which had no corresponding ansvarlig virksomhet")
+                }
+            }
+            it.close()
+            return begrepList
+        }
+    }
+
+    fun getAllVirksomheter() : Map<String, Virksomhet>{
+        val virksomheter = mutableMapOf<String, Virksomhet>()
+
+        connectionManager.getConnection().use {
+            var stmt = it.prepareStatement(fetchAllVirksomheter)
+            stmt.execute()
+            var result = stmt.resultSet
+            while (result.next()) {
+                virksomheter.put(result.getString("org_number"), mapVirksomhet(result))
+            }
+            it.close()
+            return virksomheter
+        }
+    }
 
     fun getBegrepByCompany(orgNumber: String): MutableList<Begrep> {
         logger.info(connectionManager.toString())

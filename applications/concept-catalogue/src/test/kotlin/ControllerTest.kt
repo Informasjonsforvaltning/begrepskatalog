@@ -26,7 +26,8 @@ class ControllerTest {
         val retValue = begreperApiImplK.createBegrep(httpServletRequestMock, begrep)
         assertNotNull(retValue)
         assertNotNull(retValue.headers)
-        assertEquals(retValue.headers.get("Location")?.get(0), begreperApiImplK.baseURL + "/" + makeBegrep().ansvarligVirksomhet.id + "/" + makeBegrep().id)
+        assertEquals(retValue.headers.get("Location")?.get(0), begreperApiImplK.baseURL + makeBegrep().ansvarligVirksomhet.id + "/" + makeBegrep().id)
+
     }
 
     @Test(expected = RuntimeException::class)
@@ -52,15 +53,6 @@ class ControllerTest {
         val retValue = begreperApiImplK.setBegrepById(httpServletRequestMock,"esf3",someBegrep,true)
     }
 
-    private fun prepareSqlStoreMock(): SqlStore {
-        val sqlStoreMock: SqlStore = mock {
-            on {
-                saveBegrep(Begrep())
-            } doReturn makeBegrep()
-        }
-        return sqlStoreMock
-    }
-
     fun makeBegrep(): Begrep =
             Begrep().apply {
                 id = "1c770979-34b0-439c-a7cb-adacb3619927"
@@ -76,4 +68,13 @@ class ControllerTest {
                 prefLabel = "preflabel"
                 uri = "ramsumdURI"
             }
+
+    private fun prepareSqlStoreMock(): SqlStore {
+        val sqlStoreMock: SqlStore = mock {
+            on {
+                saveBegrep(Begrep())
+            } doReturn makeBegrep()
+        }
+        return sqlStoreMock
+    }
 }

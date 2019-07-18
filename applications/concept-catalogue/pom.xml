@@ -19,6 +19,8 @@
 		<java.version>1.8</java.version>
 		<kotlin.version>1.2.71</kotlin.version>
 		<docker.image.prefix>dcatno</docker.image.prefix>
+		<version.fdk-concept-builder>1</version.fdk-concept-builder>
+		<version.maven-install-plugin>2.5.2</version.maven-install-plugin>
 		<docker.registry/>
 	</properties>
 
@@ -93,6 +95,35 @@
 			<artifactId>validation-api</artifactId>
 		</dependency>
 
+		<!-- The local jar for https://github.com/Informasjonsforvaltning/fdk-concept-builder -->
+		<dependency>
+			<groupId>concept-builder.group</groupId>
+			<artifactId>fdk-concept-builder</artifactId>
+			<version>${version.fdk-concept-builder}</version>
+			<scope>system</scope>
+			<systemPath>${basedir}/libs/fdk-concept-builder-1.0-SNAPSHOT.jar</systemPath>
+		</dependency>
+
+
+		<!-- Dependencies from https://github.com/Informasjonsforvaltning/fdk-concept-builder -->
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>jena-fuseki-core</artifactId>
+			<version>3.8.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>jena-base</artifactId>
+			<version>3.8.0</version>
+			<type>pom</type>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>apache-jena-libs</artifactId>
+			<version>3.8.0</version>
+			<type>pom</type>
+		</dependency>
 </dependencies>
 
 	<build>
