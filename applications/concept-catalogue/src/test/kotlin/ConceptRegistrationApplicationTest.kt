@@ -110,4 +110,16 @@ class ConceptRegistrationApplicationTests {
         }
         assertFalse(sqlStore.begrepExists(emptyBegrep))
     }
+
+    @Ignore
+    @Test
+    fun testCreateAndDelete() {
+        val begrep = createBegrep()
+        sqlStore.saveBegrep(begrep)
+        assertTrue(sqlStore.begrepExists(begrep))
+
+        sqlStore.deleteBegrepById(begrep.id)
+
+        assertFalse(sqlStore.begrepExists(begrep))
+    }
 }
