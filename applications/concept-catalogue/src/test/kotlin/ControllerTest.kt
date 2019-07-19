@@ -2,13 +2,14 @@ package no.begrepskatalog.conceptregistration
 
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.whenever
 import no.begrepskatalog.conceptregistration.storage.SqlStore
 import no.begrepskatalog.generated.model.Begrep
 import no.begrepskatalog.generated.model.Virksomhet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
-import java.lang.RuntimeException
 import javax.servlet.http.HttpServletRequest
 
 
@@ -53,6 +54,18 @@ class ControllerTest {
         val retValue = begreperApiImplK.setBegrepById(httpServletRequestMock,"esf3",someBegrep,true)
     }
 
+    @Test
+    fun test_deletion_both_checks_existence_and_actually_calls_delete() {
+        val sqlStoreMock: SqlStore = prepareSqlStoreMock()
+
+        val httpServletRequestMock: HttpServletRequest = mock()
+        val begreperApiImplK = BegreperApiImplK(sqlStoreMock)
+        val retValue = begreperApiImplK.deleteBegrepById(httpServletRequestMock, "dummyId")
+
+        verify(sqlStoreMock).deleteBegrepById("dummyId")
+        verify(sqlStoreMock).begrepExists("dummyId")
+    }
+
     fun makeBegrep(): Begrep =
             Begrep().apply {
                 id = "1c770979-34b0-439c-a7cb-adacb3619927"
@@ -75,6 +88,9 @@ class ControllerTest {
                 saveBegrep(Begrep())
             } doReturn makeBegrep()
         }
+        whenever(sqlStoreMock.begrepExists("dummyId")).thenReturn(true)
+        whenever(sqlStoreMock.begrepExists("NonExistingId")).thenReturn(false)
+
         return sqlStoreMock
     }
 }

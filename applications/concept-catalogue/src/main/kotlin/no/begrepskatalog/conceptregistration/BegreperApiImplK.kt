@@ -70,4 +70,26 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
 
         return ResponseEntity(HttpStatus.CONFLICT)
     }
+
+    override fun deleteBegrepById(httpServletRequest: HttpServletRequest, @ApiParam(value = "id", required = true) @PathVariable("id") id: String): ResponseEntity<Void> {
+
+        //Validate that begrep exists
+        if (!sqlStore.begrepExists(id)) {
+            logger.info("Request to delete non-existing begrep, id $id ignored")
+            return ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+
+        //Validate that begrep is NOT published
+        val begrep = sqlStore.getBegrepById(id)
+
+        if (begrep?.status == Status.PUBLISERT) {
+            logger.warn("Attempt to delete PUBLISHED begrep $id ignored")
+            return ResponseEntity(HttpStatus.BAD_REQUEST)
+        }
+
+        logger.info("Deleting begrep id $id organisation ${begrep?.ansvarligVirksomhet?.id}")
+        sqlStore.deleteBegrepById(id)
+
+        return ResponseEntity(HttpStatus.OK)
+    }
 }

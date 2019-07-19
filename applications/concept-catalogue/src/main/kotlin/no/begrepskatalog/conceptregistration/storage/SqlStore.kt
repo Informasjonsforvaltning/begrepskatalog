@@ -22,6 +22,8 @@ class SqlStore(val connectionManager: ConnectionManager) {
 
     private val fetchBegrepByCompanySQL = "select * from conceptregistrations c LEFT JOIN  conceptregistration.status s on c.status = s.id where ansvarlig_virksomhet = ? "
 
+    private val fetchBegrepById = "select * from conceptregistrations c where id = ? "
+
     private val checkExistanceOfBegrep = "select * from conceptregistrations c where id = ?"
 
     private val fetchVirksomhetByOrg_Number = "select * from virksomhet where org_number = ?"
@@ -36,7 +38,21 @@ class SqlStore(val connectionManager: ConnectionManager) {
             " ansvarlig_virksomhet,eksempel,fagområde,bruksområde, verdiområde,kontaktpunkt,gyldig_fom,forhold_til_kilde) " +
             " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 
+    private val deleteBegrepSQL = "delete from conceptregistrations where id = ?"
+
     private val getAllPublishedRegistrationsSQL = "select * from conceptregistrations c LEFT JOIN  conceptregistration.status s on c.status = s.id where c.status = " + DB_STATUS_PUBLISHED
+
+    fun deleteBegrepById(id : String) {
+        //delete the thing
+        connectionManager.getConnection().use {
+            var stmt = it.prepareStatement(deleteBegrepSQL)
+            stmt.setString(1, id)
+            stmt.execute()
+            var result = stmt.resultSet
+
+            it.close()
+        }
+    }
 
     fun getAllPublishedBegrep() : List<Begrep>{
         val begrepList = mutableListOf<Begrep>()
@@ -74,6 +90,31 @@ class SqlStore(val connectionManager: ConnectionManager) {
             it.close()
             return virksomheter
         }
+    }
+
+    fun getBegrepById(id :String) : Begrep? {
+        var begrep : Begrep
+
+        connectionManager.getConnection().use {
+            var stmt = it.prepareStatement(fetchBegrepById)
+            stmt.setString(1, id)
+            var success = stmt.execute()
+
+            var results = stmt.resultSet
+            if (results.next()) {
+                var orgNumber = results.getString("org_number")
+                var thisVirksomhet = getVirksomhet(orgNumber)
+
+                if (thisVirksomhet == null) {
+                    logger.info("In getBegrepById : failed to find virksomhet $orgNumber, that begrep $id claims to belong to")
+                    return null
+                }
+                begrep = mapToBegrep(results, thisVirksomhet )
+                it.close()
+                return begrep
+            }
+        }
+        return null
     }
 
     fun getBegrepByCompany(orgNumber: String): MutableList<Begrep> {
@@ -117,15 +158,21 @@ class SqlStore(val connectionManager: ConnectionManager) {
             return null
         }
     }
-
     fun begrepExists(begrep: Begrep): Boolean {
         if (begrep == null || begrep.id == null) {
+            return false
+        }
+        return begrepExists(begrep.id)
+    }
+
+    fun begrepExists(id : String) : Boolean {
+        if (id == null || id.isNullOrEmpty()) {
             return false
         }
 
         connectionManager.getConnection().use {
             var stmt = it.prepareStatement(checkExistanceOfBegrep)
-            stmt.setString(1, begrep.id)
+            stmt.setString(1, id)
             stmt.execute()
             var result = stmt.resultSet
             if (result.next()) {//There was a result
