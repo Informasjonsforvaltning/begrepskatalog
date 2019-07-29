@@ -67,7 +67,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/QueryResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Begrep'
   /begreper/{id}:
     get:
       tags:
