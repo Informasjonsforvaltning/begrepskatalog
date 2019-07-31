@@ -10,7 +10,10 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.CrossOrigin
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -39,7 +42,7 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
                     val headers = HttpHeaders()
                     val urlForAccessingThisBegrepsRegistration = baseURL + it.ansvarligVirksomhet.id + "/" + it.id
                     headers.add(HttpHeaders.LOCATION, urlForAccessingThisBegrepsRegistration)
-                    headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,HttpHeaders.LOCATION)
+                    headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.LOCATION)
                     ResponseEntity<Void>(headers, HttpStatus.CREATED)
                 }
                 ?: let {
@@ -48,28 +51,77 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
                 }
     }
 
-    override fun setBegrepById(httpServletRequest: HttpServletRequest, @ApiParam(value = "id", required = true) id: String, @ApiParam(value = "", required = true) @Valid @RequestBody begrep: Begrep, @ApiParam(value = "Om begrepet skal valideres") @Valid @RequestParam(value = "validate", required = false) validate: Boolean): ResponseEntity<Begrep> {
-        //We must have an ID that already exists, AND a virksomhet
-        if (!sqlStore.begrepExists(begrep)) {
+    override fun setBegrepById(httpServletRequest: HttpServletRequest?, id: String?, begrep: Begrep?, validate: Boolean?): ResponseEntity<Begrep> {
+        if (id == null) {
+            throw RuntimeException("Attempt to PATCH begrep with no id path variable given")
+        }
+        if (begrep == null) {
+            throw RuntimeException("Attempt to PATCH begrep with no begrep data given. Id provided was $id")
+        }
+
+        if (!sqlStore.begrepExists(id)) {
             throw RuntimeException("Attempt to PUT begrep that does not already exist. Begrep id ${begrep.id}")
         }
+        //Get the begrep, and just update
+        var storedBegrep = sqlStore.getBegrepById(id)
 
-        if (begrep.ansvarligVirksomhet == null) {
-            throw RuntimeException("Attempt to PUT begrep with no accompanying Ansvarlig Virksomhet")
+        if (storedBegrep == null) {
+            throw java.lang.RuntimeException("Stored begrep with id $id was null. This should not happen")
         }
 
-        if (begrep.status == Status.UTKAST) {
-            sqlStore.saveBegrep(begrep)
+        val updatedBegrep = updateBegrep(begrep, storedBegrep)
+
+        if (updatedBegrep.status == Status.UTKAST) {
+            sqlStore.saveBegrep(updatedBegrep)
             return ResponseEntity(HttpStatus.OK)
         } else {
-            if (begrep.anbefaltTerm != null && begrep.definisjon != null) {
-                sqlStore.saveBegrep(begrep)
-                logger.info("Begrep $begrep.id has passed validation for non draft begrep and has been saved ")
-                return ResponseEntity(HttpStatus.OK)
+            if (updatedBegrep.anbefaltTerm != null && updatedBegrep.definisjon != null) {
+                sqlStore.saveBegrep(updatedBegrep)
+                logger.info("Begrep $updatedBegrep.id has passed validation for non draft begrep and has been saved ")
+                return ResponseEntity.ok(begrep)
             }
         }
-
         return ResponseEntity(HttpStatus.CONFLICT)
+    }
+
+    fun updateBegrep(source: Begrep, destination: Begrep): Begrep {
+        if (source.status != null) {
+            destination.status = source.status
+        }
+        if (source.anbefaltTerm != null) {
+            destination.anbefaltTerm = source.anbefaltTerm
+        }
+        if (source.definisjon != null) {
+            destination.definisjon = source.definisjon
+        }
+        if (source.kilde != null) {
+            destination.kilde = source.kilde
+        }
+        if (source.merknad != null) {
+            destination.merknad = source.merknad
+        }
+        if (source.eksempel != null) {
+            destination.eksempel = source.eksempel
+        }
+        if (source.fagområde != null) {
+            destination.fagområde = source.fagområde
+        }
+        if (source.bruksområde != null) {
+            destination.bruksområde = source.bruksområde
+        }
+        if (source.verdiområde != null) {
+            destination.verdiområde = source.verdiområde
+        }
+        if (source.kontaktpunkt != null) {
+            destination.kontaktpunkt = source.kontaktpunkt
+        }
+        if (source.gyldigFom != null) {
+            destination.gyldigFom = source.gyldigFom
+        }
+        if (source.forholdTilKilde != null) {
+            destination.forholdTilKilde = source.forholdTilKilde
+        }
+        return destination
     }
 
     override fun deleteBegrepById(httpServletRequest: HttpServletRequest, @ApiParam(value = "id", required = true) @PathVariable("id") id: String): ResponseEntity<Void> {

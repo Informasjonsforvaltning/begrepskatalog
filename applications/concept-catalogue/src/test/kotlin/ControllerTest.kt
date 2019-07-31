@@ -6,11 +6,13 @@ import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import no.begrepskatalog.conceptregistration.storage.SqlStore
 import no.begrepskatalog.generated.model.Begrep
+import no.begrepskatalog.generated.model.Status
 import no.begrepskatalog.generated.model.Virksomhet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 import javax.servlet.http.HttpServletRequest
+import java.time.LocalDate
 
 
 class ControllerTest {
@@ -66,11 +68,71 @@ class ControllerTest {
         verify(sqlStoreMock).begrepExists("dummyId")
     }
 
+    @Test
+    fun test_update_begrep() {
+        val sqlStoreMock: SqlStore = prepareSqlStoreMock()
+        val begreperApiImplK = BegreperApiImplK(sqlStoreMock)
+        val source = makeDataFilledBegrepA()
+        val sourceToTestAgainst = makeDataFilledBegrepA()
+        val destination  = makeDataFilledBegrepB()
+
+        val updatedBegrep = begreperApiImplK.updateBegrep(source, destination)
+
+        //verify that destination has all values ending in A (so we know that they are copied over)
+        assert(updatedBegrep.status == sourceToTestAgainst.status )
+        assert(updatedBegrep.definisjon == sourceToTestAgainst.definisjon )
+        assert(updatedBegrep.anbefaltTerm == sourceToTestAgainst.anbefaltTerm )
+        assert(updatedBegrep.definisjon == sourceToTestAgainst.definisjon )
+        assert(updatedBegrep.kilde == sourceToTestAgainst.kilde )
+        assert(updatedBegrep.merknad == sourceToTestAgainst.merknad )
+        assert(updatedBegrep.fagområde == sourceToTestAgainst.fagområde )
+        assert(updatedBegrep.bruksområde == sourceToTestAgainst.bruksområde )
+        assert(updatedBegrep.verdiområde == sourceToTestAgainst.verdiområde )
+        assert(updatedBegrep.kontaktpunkt == sourceToTestAgainst.kontaktpunkt )
+    }
+
+
     fun makeBegrep(): Begrep =
             Begrep().apply {
                 id = "1c770979-34b0-439c-a7cb-adacb3619927"
                 definisjon = "testbegrep"
                 ansvarligVirksomhet = createTestVirksomhet()
+            }
+
+    fun makeDataFilledBegrepA(): Begrep =
+            Begrep().apply {
+                id = "1c770979-34b0-439c-a7cb-adacb3619927"
+                definisjon = "testbegrepA"
+                ansvarligVirksomhet = createTestVirksomhet()
+                status = Status.UTKAST
+                anbefaltTerm = "fødestedA"
+                definisjon = "er geografisk navn på hvor i fødekommunen eller fødelandet personen er født.A"
+                kilde = "skatteetatenA"
+                merknad = "testbegrepA"
+                eksempel = "bergenA"
+                fagområde = "fødeA"
+                bruksområde = "medisinA"
+                verdiområde = "geografiskA"
+                kontaktpunkt = "55555555A"
+                gyldigFom = LocalDate.now()
+            }
+
+    fun makeDataFilledBegrepB(): Begrep =
+            Begrep().apply {
+                id = "1c770979-34b0-439c-a7cb-adacb3619927"
+                definisjon = "testbegrepB"
+                ansvarligVirksomhet = createTestVirksomhet()
+                status = Status.UTKAST
+                anbefaltTerm = "fødestedB"
+                definisjon = "er geografisk navn på hvor i fødekommunen eller fødelandet personen er født.B"
+                kilde = "skatteetatenB"
+                merknad = "testbegrepB"
+                eksempel = "bergenB"
+                fagområde = "fødeB"
+                bruksområde = "medisinB"
+                verdiområde = "geografiskB"
+                kontaktpunkt = "55555555B"
+                gyldigFom = LocalDate.now().plusMonths(1)
             }
 
     fun createTestVirksomhet(): no.begrepskatalog.generated.model.Virksomhet =
