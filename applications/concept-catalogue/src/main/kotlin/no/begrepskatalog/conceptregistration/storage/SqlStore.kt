@@ -187,10 +187,12 @@ class SqlStore(val connectionManager: ConnectionManager) {
     //Precondition: Virksomhet is never null
     fun saveBegrep(begrep: Begrep): Begrep? {
 
-        val generatedId = java.util.UUID.randomUUID().toString()
-        begrep.id = generatedId
+        if (begrep.id == null) {
+            val generatedId = java.util.UUID.randomUUID().toString()
+            begrep.id = generatedId
+        }
 
-        logger.info("Trying to store begrep ${generatedId} to db")
+        logger.info("Trying to store begrep ${begrep.id} to db")
 
         val virksomhet = begrep.ansvarligVirksomhet
 
