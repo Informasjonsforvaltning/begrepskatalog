@@ -102,7 +102,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
 
             var results = stmt.resultSet
             if (results.next()) {
-                var orgNumber = results.getString("org_number")
+                var orgNumber = results.getString("ansvarlig_virksomhet")
                 var thisVirksomhet = getVirksomhet(orgNumber)
 
                 if (thisVirksomhet == null) {
