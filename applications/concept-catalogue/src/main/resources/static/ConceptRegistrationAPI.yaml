@@ -182,16 +182,35 @@ components:
             type: string
           bruksområde:
             type: string
-          verdiområde:
-            type: string
-            description: omfang
+          omfang:
+            $ref: "#/components/schemas/Omfang"
           kontaktpunkt:
-            type: string
+            $ref: "#/components/schemas/Kontaktpunkt"
           gyldigFom:
             type: string
             format: date
           forholdTilKilde:
             type: string
+    Omfang:
+      type: object
+      description: Også kalt verdiområde
+      properties:
+        uri:
+          type: string
+          description: Lenke til omfang
+        tekst:
+          type: string
+          description: Tekst (tittel) på omfang
+    Kontaktpunkt:
+      type: object
+      description: kontaktpunktet for dette begrepet
+      properties:
+        harEpost:
+          type: string
+          description: e-post adressen til kontaktpunkt
+        harTelefon:
+          type: string
+          description: telefonnummer til kontaktpunkt
     Virksomhet:
       type: object
       description: Ansvarlig virksomhet for begrepet [dct:publisher]
