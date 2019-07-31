@@ -7,6 +7,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.sql.Date
+import java.sql.PreparedStatement
 import java.sql.ResultSet
 
 private val logger: Logger = LoggerFactory.getLogger(SqlStore::class.java)
@@ -37,6 +38,11 @@ class SqlStore(val connectionManager: ConnectionManager) {
     private val saveBegrepSQL = "insert into conceptregistrations(id,status,anbefalt_term,definisjon,kilde,merknad, " +
             " ansvarlig_virksomhet,eksempel,fagområde,bruksområde, verdiområde,kontaktpunkt,gyldig_fom,forhold_til_kilde) " +
             " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+
+    private val updateBegrepSQL = "update conceptregistrations" +
+            " set status=?,anbefalt_term=?,definisjon=?,kilde=?,merknad=?, " +
+            " ansvarlig_virksomhet=?,eksempel=?,fagområde=?,bruksområde=?, verdiområde=?,kontaktpunkt=?,gyldig_fom=?,forhold_til_kilde=? " +
+            " where id=?"
 
     private val deleteBegrepSQL = "delete from conceptregistrations where id = ?"
 
@@ -186,10 +192,11 @@ class SqlStore(val connectionManager: ConnectionManager) {
 
     //Precondition: Virksomhet is never null
     fun saveBegrep(begrep: Begrep): Begrep? {
-
+        var create = false
         if (begrep.id == null) {
             val generatedId = java.util.UUID.randomUUID().toString()
             begrep.id = generatedId
+            create = true
         }
 
         logger.info("Trying to store begrep ${begrep.id} to db")
@@ -215,28 +222,55 @@ class SqlStore(val connectionManager: ConnectionManager) {
             }
 
             try {
-                val begrepStmt = it.prepareStatement(saveBegrepSQL)
-                begrepStmt.setString(1, begrep.id)
-                begrepStmt.setInt(2, mapStatusToInt(begrep.status))
-                begrepStmt.setString(3, begrep.anbefaltTerm)
-                begrepStmt.setString(4, begrep.definisjon)
-                begrepStmt.setString(5, begrep.kilde)
-                begrepStmt.setString(6, begrep.merknad)
-                begrepStmt.setString(7, virksomhet.id)
-                begrepStmt.setString(8, begrep.eksempel)
-                begrepStmt.setString(9, begrep.fagområde)
-                begrepStmt.setString(10, begrep.bruksområde)
-                begrepStmt.setString(11, begrep.verdiområde)
-                begrepStmt.setString(12, begrep.kontaktpunkt)
-                if (begrep.gyldigFom != null) {
-                    begrepStmt.setDate(13, Date.valueOf(begrep.gyldigFom))
+                var begrepStmt : PreparedStatement? = null
+                if (create) {
+                    it.prepareStatement(saveBegrepSQL)
+                    begrepStmt?.setString(1, begrep.id)
+                    begrepStmt?.setInt(2, mapStatusToInt(begrep.status))
+                    begrepStmt?.setString(3, begrep.anbefaltTerm)
+                    begrepStmt?.setString(4, begrep.definisjon)
+                    begrepStmt?.setString(5, begrep.kilde)
+                    begrepStmt?.setString(6, begrep.merknad)
+                    begrepStmt?.setString(7, virksomhet.id)
+                    begrepStmt?.setString(8, begrep.eksempel)
+                    begrepStmt?.setString(9, begrep.fagområde)
+                    begrepStmt?.setString(10, begrep.bruksområde)
+                    begrepStmt?.setString(11, begrep.verdiområde)
+                    begrepStmt?.setString(12, begrep.kontaktpunkt)
+                    if (begrep.gyldigFom != null) {
+                        begrepStmt?.setDate(13, Date.valueOf(begrep.gyldigFom))
+                    } else {
+                        begrepStmt?.setDate(13, null)
+                    }
+                    begrepStmt?.setString(14, begrep.forholdTilKilde)
                 } else {
-                    begrepStmt.setDate(13, null)
+                    it.prepareStatement(updateBegrepSQL)
+                    begrepStmt?.setInt(1, mapStatusToInt(begrep.status))
+                    begrepStmt?.setString(2, begrep.anbefaltTerm)
+                    begrepStmt?.setString(3, begrep.definisjon)
+                    begrepStmt?.setString(4, begrep.kilde)
+                    begrepStmt?.setString(5, begrep.merknad)
+                    begrepStmt?.setString(6, virksomhet.id)
+                    begrepStmt?.setString(7, begrep.eksempel)
+                    begrepStmt?.setString(8, begrep.fagområde)
+                    begrepStmt?.setString(9, begrep.bruksområde)
+                    begrepStmt?.setString(10, begrep.verdiområde)
+                    begrepStmt?.setString(11, begrep.kontaktpunkt)
+                    if (begrep.gyldigFom != null) {
+                        begrepStmt?.setDate(12, Date.valueOf(begrep.gyldigFom))
+                    } else {
+                        begrepStmt?.setDate(12, null)
+                    }
+                    begrepStmt?.setString(13, begrep.forholdTilKilde)
+                    begrepStmt?.setString(14, begrep.id)
                 }
-                begrepStmt.setString(14, begrep.forholdTilKilde)
 
-                begrepStmt.execute()
-                logger.info("Stored begrep ${begrep.id}")
+                begrepStmt?.execute()
+                if (create) {
+                    logger.info("Stored new begrep ${begrep.id}")
+                } else {
+                    logger.info("updated begrep ${begrep.id}")
+                }
                 return begrep
             } catch (t: Throwable) {
                 t.printStackTrace()
