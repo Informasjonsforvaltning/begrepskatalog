@@ -36,9 +36,10 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
 
     override fun createBegrep(httpServletRequest: HttpServletRequest, @ApiParam(value = "", required = true) @Valid @RequestBody begrep: Begrep): ResponseEntity<Void> {
 
+        begrep.id = null //We are the authority that provides ids
+
         return sqlStore.saveBegrep(begrep)
                 ?.let {
-                    logger.info("Stored begrep ${it.id}")
                     val headers = HttpHeaders()
                     val urlForAccessingThisBegrepsRegistration = baseURL + it.ansvarligVirksomhet.id + "/" + it.id
                     headers.add(HttpHeaders.LOCATION, urlForAccessingThisBegrepsRegistration)
@@ -75,7 +76,7 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
             sqlStore.saveBegrep(updatedBegrep)
             return ResponseEntity(HttpStatus.OK)
         } else {
-            if (updatedBegrep.anbefaltTerm != null && updatedBegrep.definisjon != null) {
+            if (validatePublishableBegrep(updatedBegrep)) {
                 sqlStore.saveBegrep(updatedBegrep)
                 logger.info("Begrep $updatedBegrep.id has passed validation for non draft begrep and has been saved ")
                 return ResponseEntity.ok(begrep)
@@ -83,6 +84,9 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
         }
         return ResponseEntity(HttpStatus.CONFLICT)
     }
+
+    private fun validatePublishableBegrep(updatedBegrep: Begrep) =
+            updatedBegrep.anbefaltTerm != null && updatedBegrep.definisjon != null
 
     fun updateBegrep(source: Begrep, destination: Begrep): Begrep {
         if (source.status != null) {
