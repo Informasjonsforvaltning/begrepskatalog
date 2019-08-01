@@ -1,8 +1,6 @@
 package no.begrepskatalog.conceptregistration.storage
 
-import no.begrepskatalog.generated.model.Begrep
-import no.begrepskatalog.generated.model.Status
-import no.begrepskatalog.generated.model.Virksomhet
+import no.begrepskatalog.generated.model.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -36,12 +34,12 @@ class SqlStore(val connectionManager: ConnectionManager) {
             " SET uri = excluded.uri;"
 
     private val saveBegrepSQL = "insert into conceptregistrations(id,status,anbefalt_term,definisjon,kilde,merknad, " +
-            " ansvarlig_virksomhet,eksempel,fagområde,bruksområde, verdiområde,kontaktpunkt,gyldig_fom,forhold_til_kilde) " +
-            " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+            " ansvarlig_virksomhet,eksempel,fagområde,bruksområde, omfang_tekst, omfang_uri,kontaktpunkt_harepost, kontaktpunkt_hartelefon,gyldig_fom,forhold_til_kilde) " +
+            " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 
     private val updateBegrepSQL = "update conceptregistrations" +
             " set status=?,anbefalt_term=?,definisjon=?,kilde=?,merknad=?, " +
-            " ansvarlig_virksomhet=?,eksempel=?,fagområde=?,bruksområde=?, verdiområde=?,kontaktpunkt=?,gyldig_fom=?,forhold_til_kilde=? " +
+            " ansvarlig_virksomhet=?,eksempel=?,fagområde=?,bruksområde=?, omfang_tekst=?, omfang_uri=?,kontaktpunkt_harepost=?, kontaktpunkt_hartelefon=?,gyldig_fom=?,forhold_til_kilde=? " +
             " where id=?"
 
     private val deleteBegrepSQL = "delete from conceptregistrations where id = ?"
@@ -224,7 +222,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
             try {
                 var begrepStmt : PreparedStatement? = null
                 if (create) {
-                    it.prepareStatement(saveBegrepSQL)
+                    begrepStmt = it.prepareStatement(saveBegrepSQL)
                     begrepStmt?.setString(1, begrep.id)
                     begrepStmt?.setInt(2, mapStatusToInt(begrep.status))
                     begrepStmt?.setString(3, begrep.anbefaltTerm)
@@ -235,16 +233,20 @@ class SqlStore(val connectionManager: ConnectionManager) {
                     begrepStmt?.setString(8, begrep.eksempel)
                     begrepStmt?.setString(9, begrep.fagområde)
                     begrepStmt?.setString(10, begrep.bruksområde)
-                    begrepStmt?.setString(11, begrep.verdiområde)
-                    begrepStmt?.setString(12, begrep.kontaktpunkt)
+
+                    begrepStmt?.setString(11, begrep.omfang?.tekst)
+                    begrepStmt?.setString(12, begrep.omfang?.uri)
+                    begrepStmt?.setString(13, begrep.kontaktpunkt?.harEpost)
+                    begrepStmt?.setString(14, begrep.kontaktpunkt?.harTelefon)
+
                     if (begrep.gyldigFom != null) {
-                        begrepStmt?.setDate(13, Date.valueOf(begrep.gyldigFom))
+                        begrepStmt?.setDate(15, Date.valueOf(begrep.gyldigFom))
                     } else {
-                        begrepStmt?.setDate(13, null)
+                        begrepStmt?.setDate(15, null)
                     }
-                    begrepStmt?.setString(14, begrep.forholdTilKilde)
+                    begrepStmt?.setString(16, begrep.forholdTilKilde)
                 } else {
-                    it.prepareStatement(updateBegrepSQL)
+                    begrepStmt = it.prepareStatement(updateBegrepSQL)
                     begrepStmt?.setInt(1, mapStatusToInt(begrep.status))
                     begrepStmt?.setString(2, begrep.anbefaltTerm)
                     begrepStmt?.setString(3, begrep.definisjon)
@@ -254,15 +256,17 @@ class SqlStore(val connectionManager: ConnectionManager) {
                     begrepStmt?.setString(7, begrep.eksempel)
                     begrepStmt?.setString(8, begrep.fagområde)
                     begrepStmt?.setString(9, begrep.bruksområde)
-                    begrepStmt?.setString(10, begrep.verdiområde)
-                    begrepStmt?.setString(11, begrep.kontaktpunkt)
+                    begrepStmt?.setString(10, begrep.omfang?.tekst)
+                    begrepStmt?.setString(11, begrep.omfang?.uri)
+                    begrepStmt?.setString(12, begrep.kontaktpunkt?.harEpost)
+                    begrepStmt?.setString(13, begrep.kontaktpunkt?.harTelefon)
                     if (begrep.gyldigFom != null) {
-                        begrepStmt?.setDate(12, Date.valueOf(begrep.gyldigFom))
+                        begrepStmt?.setDate(14, Date.valueOf(begrep.gyldigFom))
                     } else {
-                        begrepStmt?.setDate(12, null)
+                        begrepStmt?.setDate(14, null)
                     }
-                    begrepStmt?.setString(13, begrep.forholdTilKilde)
-                    begrepStmt?.setString(14, begrep.id)
+                    begrepStmt?.setString(15, begrep.forholdTilKilde)
+                    begrepStmt?.setString(16, begrep.id)
                 }
 
                 begrepStmt?.execute()
@@ -307,8 +311,19 @@ class SqlStore(val connectionManager: ConnectionManager) {
         mappedBegrep.eksempel = result.getString("eksempel")
         mappedBegrep.fagområde = result.getString("fagområde")
         mappedBegrep.bruksområde = result.getString("bruksområde")
-        mappedBegrep.verdiområde = result.getString("verdiområde")
-        mappedBegrep.kontaktpunkt = result.getString("kontaktpunkt")
+
+        val omfang_text = result.getString("omfang_tekst")
+        val omfang_uri = result.getString("omfang_uri")
+        mappedBegrep.omfang = Omfang()
+        mappedBegrep.omfang.tekst = omfang_text
+        mappedBegrep.omfang.uri = omfang_uri
+
+        val kontaktpunkt_hartelefon = result.getString("kontaktpunkt_hartelefon")
+        val kontaktpunkt_harepost = result.getString("kontaktpunkt_harepost")
+        mappedBegrep.kontaktpunkt = Kontaktpunkt()
+        mappedBegrep.kontaktpunkt.harTelefon = kontaktpunkt_hartelefon
+        mappedBegrep.kontaktpunkt.harEpost = kontaktpunkt_harepost
+
         if (result.getDate("gyldig_FOM") != null) {
             mappedBegrep.gyldigFom = result.getDate("gyldig_FOM").toLocalDate()
         }
