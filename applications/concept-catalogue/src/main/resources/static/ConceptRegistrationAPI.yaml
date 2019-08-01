@@ -145,18 +145,6 @@ paths:
           description: No Content
 components:
   schemas:
-    QueryResponse:
-      type: object
-      properties:
-        _embedded:
-          type: object
-          properties:
-            concepts:
-              type: array
-              items:
-                $ref: '#/components/schemas/Begrep'
-        page:
-          $ref: '#/components/schemas/Page'
     Begrep:
         type: object
         description: Et begrep
@@ -170,8 +158,8 @@ components:
             type: string
           definisjon:
             type: string
-          kilde:
-            type: string
+          kildebeskrivelse:
+            $ref: "#/components/schemas/Kildebeskrivelse"
           merknad:
             type: string
           ansvarligVirksomhet:
@@ -183,24 +171,33 @@ components:
           bruksområde:
             type: string
           omfang:
-            $ref: "#/components/schemas/Omfang"
+            $ref: "#/components/schemas/URITekst"
           kontaktpunkt:
             $ref: "#/components/schemas/Kontaktpunkt"
           gyldigFom:
             type: string
             format: date
-          forholdTilKilde:
-            type: string
-    Omfang:
+    Kildebeskrivelse:
       type: object
-      description: Også kalt verdiområde
+      properties:
+        forholdTilKilde:
+          type: string
+          enum:
+            - egendefinert
+            - basertPaaKilde
+            - sitatFraKilde
+        kilde:
+          description: er kun relevant dersom typeKilde
+          type: array
+          items:
+            $ref: "#/components/schemas/URITekst"
+    URITekst:
+      type: object
       properties:
         uri:
           type: string
-          description: Lenke til omfang
         tekst:
           type: string
-          description: Tekst (tittel) på omfang
     Kontaktpunkt:
       type: object
       description: kontaktpunktet for dette begrepet
@@ -241,14 +238,3 @@ components:
       properties:
         melding:
           type: string
-    Page:
-      type: object
-      properties:
-        number:
-          type: number
-        size:
-          type: number
-        totalElements:
-          type: number
-        totalPages:
-          type: number
