@@ -74,12 +74,12 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
 
         if (updatedBegrep.status == Status.UTKAST) {
             sqlStore.saveBegrep(updatedBegrep)
-            return ResponseEntity(HttpStatus.OK)
+            return ResponseEntity.ok(updatedBegrep)
         } else {
             if (validatePublishableBegrep(updatedBegrep)) {
                 sqlStore.saveBegrep(updatedBegrep)
                 logger.info("Begrep $updatedBegrep.id has passed validation for non draft begrep and has been saved ")
-                return ResponseEntity.ok(begrep)
+                return ResponseEntity.ok(updatedBegrep)
             }
         }
         return ResponseEntity(HttpStatus.CONFLICT)
