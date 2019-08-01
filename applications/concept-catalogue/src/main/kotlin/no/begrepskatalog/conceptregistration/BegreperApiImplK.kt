@@ -135,6 +135,16 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
         return destination
     }
 
+    override fun getBegrepById(httpServletRequest: HttpServletRequest, @ApiParam(value = "id", required = true) @PathVariable("id") id: String): ResponseEntity<Begrep> {
+        val begrep = sqlStore.getBegrepById(id)
+
+        return if (begrep != null) {
+            ResponseEntity.ok(begrep)
+        } else {
+            ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+    }
+
     override fun deleteBegrepById(httpServletRequest: HttpServletRequest, @ApiParam(value = "id", required = true) @PathVariable("id") id: String): ResponseEntity<Void> {
 
         //Validate that begrep exists
