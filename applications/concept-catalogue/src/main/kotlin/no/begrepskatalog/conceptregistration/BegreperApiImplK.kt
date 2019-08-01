@@ -113,11 +113,18 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
         if (source.bruksområde != null) {
             destination.bruksområde = source.bruksområde
         }
-        if (source.verdiområde != null) {
-            destination.verdiområde = source.verdiområde
-        }
         if (source.kontaktpunkt != null) {
-            destination.kontaktpunkt = source.kontaktpunkt
+            if (source.kontaktpunkt?.harEpost != null)
+                destination.kontaktpunkt.harEpost = source.kontaktpunkt?.harEpost
+
+            if (source.kontaktpunkt?.harTelefon != null)
+                destination.kontaktpunkt.harTelefon = source.kontaktpunkt?.harTelefon
+        }
+        if (source.omfang != null) {
+            if (source.omfang?.tekst != null)
+                destination.omfang.tekst = source.omfang?.tekst
+            if (source.omfang?.uri != null)
+                destination.omfang.uri = source.omfang?.uri
         }
         if (source.gyldigFom != null) {
             destination.gyldigFom = source.gyldigFom
