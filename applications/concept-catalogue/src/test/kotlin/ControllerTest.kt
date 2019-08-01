@@ -85,7 +85,11 @@ class ControllerTest {
         assert(updatedBegrep.merknad == sourceToTestAgainst.merknad)
         assert(updatedBegrep.fagområde == sourceToTestAgainst.fagområde)
         assert(updatedBegrep.bruksområde == sourceToTestAgainst.bruksområde)
-        assert(updatedBegrep.kontaktpunkt == sourceToTestAgainst.kontaktpunkt)
+        assert(updatedBegrep.kontaktpunkt.harTelefon == sourceToTestAgainst.kontaktpunkt.harTelefon)
+        assert(updatedBegrep.kontaktpunkt.harEpost == sourceToTestAgainst.kontaktpunkt.harEpost)
+        assert(updatedBegrep.omfang.tekst == sourceToTestAgainst.omfang.tekst)
+        assert(updatedBegrep.omfang.uri == sourceToTestAgainst.omfang.uri)
+
     }
 
 
@@ -127,6 +131,7 @@ class ControllerTest {
                 eksempel = "bergenB"
                 fagområde = "fødeB"
                 bruksområde = "medisinB"
+                omfang = omfangB()
                 kontaktpunkt = pkunktB()
                 gyldigFom = LocalDate.now().plusMonths(1)
             }
