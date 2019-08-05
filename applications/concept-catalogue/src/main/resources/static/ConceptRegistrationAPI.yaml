@@ -177,6 +177,8 @@ components:
           gyldigFom:
             type: string
             format: date
+          endringslogelement:
+            $ref: "#/components/schemas/Endringslogelement"
     Kildebeskrivelse:
       type: object
       required:
@@ -240,3 +242,14 @@ components:
       properties:
         melding:
           type: string
+    Endringslogelement:
+      type: object
+      required:
+        - brukerId
+        - endringstidspunkt
+      properties:
+        brukerId:
+          type: string
+        endringstidspunkt:
+          type: string
+          format: date-time
