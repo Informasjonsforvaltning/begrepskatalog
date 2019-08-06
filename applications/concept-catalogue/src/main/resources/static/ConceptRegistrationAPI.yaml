@@ -179,6 +179,8 @@ components:
             format: date
     Kildebeskrivelse:
       type: object
+      required:
+        - forholdTilKilde
       properties:
         forholdTilKilde:
           type: string
