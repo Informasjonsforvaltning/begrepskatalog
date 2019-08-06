@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component
 import java.sql.Date
 import java.sql.PreparedStatement
 import java.sql.ResultSet
+import java.sql.Statement
 
 private val logger: Logger = LoggerFactory.getLogger(SqlStore::class.java)
 
@@ -18,6 +19,8 @@ class SqlStore(val connectionManager: ConnectionManager) {
     private val DB_STATUS_ACCEPTED = 2
 
     private val DB_STATUS_PUBLISHED = 3
+
+    private val fetchURITextsByConceptURI = "select * from uritext u, conceptregistration_uritexts coupling where u.id = coupling.uritext and coupling.registration =  ? "
 
     private val fetchBegrepByCompanySQL = "select * from conceptregistrations c LEFT JOIN  conceptregistration.status s on c.status = s.id where ansvarlig_virksomhet = ? "
 
@@ -33,27 +36,55 @@ class SqlStore(val connectionManager: ConnectionManager) {
             " ON CONFLICT (org_number) DO UPDATE " +
             " SET uri = excluded.uri;"
 
-    private val saveBegrepSQL = "insert into conceptregistrations(id,status,anbefalt_term,definisjon,kilde,merknad, " +
-            " ansvarlig_virksomhet,eksempel,fagområde,bruksområde, omfang_tekst, omfang_uri,kontaktpunkt_harepost, kontaktpunkt_hartelefon,gyldig_fom,forhold_til_kilde) " +
-            " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+    private val createSource = "insert into URIText(uri,text) values(?,?)"
+
+    private val addCupling = "insert into conceptregistration_URITexts(registration, URIText) values (?,?)"
+
+    private val saveBegrepSQL = "insert into conceptregistrations(id,status,anbefalt_term,definisjon,forhold_til_kilde,merknad, " +
+            " ansvarlig_virksomhet,eksempel,fagområde,bruksområde, omfang_tekst, omfang_uri,kontaktpunkt_harepost, kontaktpunkt_hartelefon,gyldig_fom) " +
+            " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 
     private val updateBegrepSQL = "update conceptregistrations" +
-            " set status=?,anbefalt_term=?,definisjon=?,kilde=?,merknad=?, " +
-            " ansvarlig_virksomhet=?,eksempel=?,fagområde=?,bruksområde=?, omfang_tekst=?, omfang_uri=?,kontaktpunkt_harepost=?, kontaktpunkt_hartelefon=?,gyldig_fom=?,forhold_til_kilde=? " +
+            " set status=?,anbefalt_term=?,definisjon=?,forhold_til_kilde=?,merknad=?, " +
+            " ansvarlig_virksomhet=?,eksempel=?,fagområde=?,bruksområde=?, omfang_tekst=?, omfang_uri=?,kontaktpunkt_harepost=?, kontaktpunkt_hartelefon=?,gyldig_fom=? " +
             " where id=?"
 
     private val deleteBegrepSQL = "delete from conceptregistrations where id = ?"
 
+    private val deleteKildeCouplingSQL = "delete from conceptregistration_URITexts where registration = ?"
+
+    private val deleteURITextSQL = "delete from uritext as ut using conceptregistration_uritexts as coupling where (ut.id = coupling.uritext) and coupling.registration=?"
+
     private val getAllPublishedRegistrationsSQL = "select * from conceptregistrations c LEFT JOIN  conceptregistration.status s on c.status = s.id where c.status = " + DB_STATUS_PUBLISHED
 
     fun deleteBegrepById(id : String) {
-        //delete the thing
+
         connectionManager.getConnection().use {
             var stmt = it.prepareStatement(deleteBegrepSQL)
             stmt.setString(1, id)
             stmt.execute()
             var result = stmt.resultSet
 
+            it.close()
+        }
+        deleteURITextForBegrep(id)
+    }
+
+    fun deleteURITextForBegrep(id : String) {
+
+        logger.info("Trying to delete URIText and coupling for begrep id $id")
+        connectionManager.getConnection().use {
+
+            var couplingStmt = it.prepareStatement(deleteKildeCouplingSQL)
+            couplingStmt.setString(1, id)
+            couplingStmt.execute()
+            var result = couplingStmt.resultSet
+
+            var uritTextStmt = it.prepareStatement(deleteURITextSQL)
+            uritTextStmt.setString(1,id)
+            uritTextStmt.execute()
+
+            logger.info("Deleted URIText and coupling for begrep id $id")
             it.close()
         }
     }
@@ -197,7 +228,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
             create = true
         }
 
-        logger.info("Trying to store begrep ${begrep.id} to db")
+        logger.info("Trying to store begrep ${begrep.id} to db. Create new begrep: $create ")
 
         val virksomhet = begrep.ansvarligVirksomhet
 
@@ -227,7 +258,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
                     begrepStmt?.setInt(2, mapStatusToInt(begrep.status))
                     begrepStmt?.setString(3, begrep.anbefaltTerm)
                     begrepStmt?.setString(4, begrep.definisjon)
-                    begrepStmt?.setString(5, begrep.kilde)
+                    begrepStmt?.setInt(5, mapForholdTilKildeToInt(begrep.kildebeskrivelse?.forholdTilKilde))
                     begrepStmt?.setString(6, begrep.merknad)
                     begrepStmt?.setString(7, virksomhet.id)
                     begrepStmt?.setString(8, begrep.eksempel)
@@ -244,13 +275,12 @@ class SqlStore(val connectionManager: ConnectionManager) {
                     } else {
                         begrepStmt?.setDate(15, null)
                     }
-                    begrepStmt?.setString(16, begrep.forholdTilKilde)
                 } else {
                     begrepStmt = it.prepareStatement(updateBegrepSQL)
                     begrepStmt?.setInt(1, mapStatusToInt(begrep.status))
                     begrepStmt?.setString(2, begrep.anbefaltTerm)
                     begrepStmt?.setString(3, begrep.definisjon)
-                    begrepStmt?.setString(4, begrep.kilde)
+                    begrepStmt?.setInt(4, mapForholdTilKildeToInt(begrep.kildebeskrivelse?.forholdTilKilde))
                     begrepStmt?.setString(5, begrep.merknad)
                     begrepStmt?.setString(6, virksomhet.id)
                     begrepStmt?.setString(7, begrep.eksempel)
@@ -265,8 +295,10 @@ class SqlStore(val connectionManager: ConnectionManager) {
                     } else {
                         begrepStmt?.setDate(14, null)
                     }
-                    begrepStmt?.setString(15, begrep.forholdTilKilde)
-                    begrepStmt?.setString(16, begrep.id)
+                    begrepStmt?.setString(15, begrep.id)
+
+                    //Delete whatever is in there, then write out
+                    deleteURITextForBegrep(begrep.id)
                 }
 
                 begrepStmt?.execute()
@@ -275,6 +307,14 @@ class SqlStore(val connectionManager: ConnectionManager) {
                 } else {
                     logger.info("updated begrep ${begrep.id}")
                 }
+                //TODO: Remember transaction
+                if ( begrep.kildebeskrivelse != null && begrep.kildebeskrivelse.kilde != null
+                        && begrep.kildebeskrivelse.kilde.size > 0 ) {
+                    for (kilde in begrep.kildebeskrivelse.kilde) {
+                        storeSingleURIText(begrep.id, kilde)
+                    }
+                }
+
                 return begrep
             } catch (t: Throwable) {
                 t.printStackTrace()
@@ -283,6 +323,43 @@ class SqlStore(val connectionManager: ConnectionManager) {
             it.close()
             return null
         }
+    }
+
+    private fun storeSingleURIText(id: String, kilde: URITekst) {
+        connectionManager.getConnection().use {
+            var stmtUriText = it.prepareStatement(createSource, Statement.RETURN_GENERATED_KEYS)
+            stmtUriText.setString(1, kilde.uri)
+            stmtUriText.setString(2, kilde.tekst)
+            stmtUriText.execute()
+            logger.info("Created URI text for begrep id $id, source was $kilde")
+
+            var result = stmtUriText.resultSet
+
+            //Get the new generated id from the db
+            var generatedKeys = stmtUriText.getGeneratedKeys()
+            generatedKeys.next()
+            var idForUriText = generatedKeys.getInt(1)
+
+            var stmtCoupling = it.prepareStatement(addCupling)
+            stmtCoupling.setString(1,id)
+            stmtCoupling.setInt(2,idForUriText)
+            stmtCoupling.execute()
+
+            it.close()
+        }
+    }
+
+    fun mapForholdTilKildeToInt(forholdTilKilde: Kildebeskrivelse.ForholdTilKildeEnum?) : Int {
+        if (forholdTilKilde == Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT) {
+            return 1
+        }
+        if (forholdTilKilde == Kildebeskrivelse.ForholdTilKildeEnum.BASERTPAAKILDE) {
+            return 2
+        }
+        if (forholdTilKilde == Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE) {
+            return 3
+        }
+        throw RuntimeException("Error converting forholdTilKilde to db ids, Got ${forholdTilKilde} Did not get one of (EGENDEFINERT,BASERTPAAKILDE,SITATFRAKILDE)")
     }
 
     fun mapStatusToInt(status: Status): Int {
@@ -305,7 +382,8 @@ class SqlStore(val connectionManager: ConnectionManager) {
         mappedBegrep.status = mapStatus(result.getString("status"))
         mappedBegrep.anbefaltTerm = result.getString("anbefalt_term")
         mappedBegrep.definisjon = result.getString("definisjon")
-        mappedBegrep.kilde = result.getString("kilde")
+        mappedBegrep.kildebeskrivelse = Kildebeskrivelse()
+        mappedBegrep.kildebeskrivelse.forholdTilKilde = mapForholdTilKilde(result.getString("forhold_til_kilde"))
         mappedBegrep.merknad = result.getString("merknad")
         mappedBegrep.ansvarligVirksomhet = virksomhet
         mappedBegrep.eksempel = result.getString("eksempel")
@@ -314,7 +392,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
 
         val omfang_text = result.getString("omfang_tekst")
         val omfang_uri = result.getString("omfang_uri")
-        mappedBegrep.omfang = Omfang()
+        mappedBegrep.omfang = URITekst()
         mappedBegrep.omfang.tekst = omfang_text
         mappedBegrep.omfang.uri = omfang_uri
 
@@ -327,9 +405,28 @@ class SqlStore(val connectionManager: ConnectionManager) {
         if (result.getDate("gyldig_FOM") != null) {
             mappedBegrep.gyldigFom = result.getDate("gyldig_FOM").toLocalDate()
         }
-        mappedBegrep.forholdTilKilde = result.getString("forhold_til_kilde")
+
+        mappedBegrep.kildebeskrivelse.kilde = getSources(mappedBegrep.id)
 
         return mappedBegrep
+    }
+
+    private fun getSources(begrepId: String) : MutableList<URITekst>{
+        val sources = mutableListOf<URITekst>()
+        connectionManager.getConnection().use {
+            var stmt = it.prepareStatement(fetchURITextsByConceptURI)
+            stmt.setString(1, begrepId)
+            var success = stmt.execute()
+
+            var results = stmt.resultSet
+            if (results.next()) {
+                val uriText = URITekst()
+                uriText.uri = results.getString("uri")
+                uriText.tekst = results.getString("text")
+                sources.add(uriText)
+            }
+        }
+        return sources
     }
 
     fun mapVirksomhet(result: ResultSet): Virksomhet {
@@ -355,5 +452,18 @@ class SqlStore(val connectionManager: ConnectionManager) {
             return Status.PUBLISERT
         }
         throw RuntimeException("While mapping statuses, encountered status $statusFromDb , that is not one of (1(UTKAST),2(GODKJENT),3(PUBLISERT))")
+    }
+
+    fun mapForholdTilKilde(forholdFromDb: String? ) : Kildebeskrivelse.ForholdTilKildeEnum {
+        if (forholdFromDb == 1.toString()) {
+            return Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT
+        }
+        if (forholdFromDb == 2.toString()) {
+            return Kildebeskrivelse.ForholdTilKildeEnum.BASERTPAAKILDE
+        }
+        if (forholdFromDb == 3.toString()) {
+            return Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE
+        }
+        throw RuntimeException("While mapping ForholdTilKilde, encountered $forholdFromDb , that is not one of (1(EGENDEFINERT),2(BASERTPAAKILDE, 3(SITATFRAKILDE) )))")
     }
 }

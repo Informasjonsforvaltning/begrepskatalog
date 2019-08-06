@@ -98,8 +98,13 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
         if (source.definisjon != null) {
             destination.definisjon = source.definisjon
         }
-        if (source.kilde != null) {
-            destination.kilde = source.kilde
+        if (source.kildebeskrivelse != null) {
+            if (source.kildebeskrivelse.forholdTilKilde!= null) {
+                destination.kildebeskrivelse.forholdTilKilde= source.kildebeskrivelse.forholdTilKilde
+            }
+            if (source.kildebeskrivelse.kilde!= null ) {
+                destination.kildebeskrivelse.kilde = source.kildebeskrivelse.kilde
+            }
         }
         if (source.merknad != null) {
             destination.merknad = source.merknad
@@ -128,9 +133,6 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
         }
         if (source.gyldigFom != null) {
             destination.gyldigFom = source.gyldigFom
-        }
-        if (source.forholdTilKilde != null) {
-            destination.forholdTilKilde = source.forholdTilKilde
         }
         return destination
     }
