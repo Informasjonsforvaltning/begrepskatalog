@@ -81,7 +81,8 @@ class ControllerTest {
         assert(updatedBegrep.definisjon == sourceToTestAgainst.definisjon)
         assert(updatedBegrep.anbefaltTerm == sourceToTestAgainst.anbefaltTerm)
         assert(updatedBegrep.definisjon == sourceToTestAgainst.definisjon)
-        assert(updatedBegrep.kilde == sourceToTestAgainst.kilde)
+        assert(updatedBegrep.kildebeskrivelse.forholdTilKilde == sourceToTestAgainst.kildebeskrivelse.forholdTilKilde)
+        assert(updatedBegrep.kildebeskrivelse.kilde.size == sourceToTestAgainst.kildebeskrivelse.kilde.size)
         assert(updatedBegrep.merknad == sourceToTestAgainst.merknad)
         assert(updatedBegrep.fagområde == sourceToTestAgainst.fagområde)
         assert(updatedBegrep.bruksområde == sourceToTestAgainst.bruksområde)
@@ -89,7 +90,6 @@ class ControllerTest {
         assert(updatedBegrep.kontaktpunkt.harEpost == sourceToTestAgainst.kontaktpunkt.harEpost)
         assert(updatedBegrep.omfang.tekst == sourceToTestAgainst.omfang.tekst)
         assert(updatedBegrep.omfang.uri == sourceToTestAgainst.omfang.uri)
-
     }
 
 
@@ -108,7 +108,13 @@ class ControllerTest {
                 status = Status.UTKAST
                 anbefaltTerm = "fødestedA"
                 definisjon = "er geografisk navn på hvor i fødekommunen eller fødelandet personen er født.A"
-                kilde = "skatteetatenA"
+                kildebeskrivelse = Kildebeskrivelse()
+                kildebeskrivelse.kilde = mutableListOf()
+                val kilde = URITekst()
+                kilde.tekst = "skatteetatenA"
+                kilde.uri = "www.skatteetaten.noA"
+                kildebeskrivelse.kilde.add(kilde)
+                kildebeskrivelse.forholdTilKilde = Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE
                 merknad = "testbegrepA"
                 eksempel = "bergenA"
                 fagområde = "fødeA"
@@ -126,7 +132,12 @@ class ControllerTest {
                 status = Status.UTKAST
                 anbefaltTerm = "fødestedB"
                 definisjon = "er geografisk navn på hvor i fødekommunen eller fødelandet personen er født.B"
-                kilde = "skatteetatenB"
+                kildebeskrivelse = Kildebeskrivelse()
+                val kilde = URITekst()
+                kilde.tekst = "skatteetatenB"
+                kilde.uri = "www.skatteetaten.noB"
+                kildebeskrivelse.kilde.add(kilde)
+                kildebeskrivelse.forholdTilKilde = Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT
                 merknad = "testbegrepB"
                 eksempel = "bergenB"
                 fagområde = "fødeB"
@@ -136,16 +147,16 @@ class ControllerTest {
                 gyldigFom = LocalDate.now().plusMonths(1)
             }
 
-    private fun omfangA(): Omfang {
-        val omf = Omfang().apply {
+    private fun omfangA(): URITekst {
+        val omf = URITekst().apply {
             tekst = "sometextA"
             uri = "http://someuri.comA"
         }
         return omf
     }
 
-    private fun omfangB(): Omfang {
-        val omf = Omfang().apply {
+    private fun omfangB(): URITekst {
+        val omf = URITekst().apply {
             tekst = "sometextB"
             uri = "http://someuri.comB"
         }
