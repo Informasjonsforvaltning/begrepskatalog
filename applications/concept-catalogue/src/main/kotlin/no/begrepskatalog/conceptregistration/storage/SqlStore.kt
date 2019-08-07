@@ -4,10 +4,8 @@ import no.begrepskatalog.generated.model.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import java.sql.Date
-import java.sql.PreparedStatement
-import java.sql.ResultSet
-import java.sql.Statement
+import java.sql.*
+import java.time.OffsetDateTime
 
 private val logger: Logger = LoggerFactory.getLogger(SqlStore::class.java)
 
@@ -41,12 +39,12 @@ class SqlStore(val connectionManager: ConnectionManager) {
     private val addCupling = "insert into conceptregistration_URITexts(registration, URIText) values (?,?)"
 
     private val saveBegrepSQL = "insert into conceptregistrations(id,status,anbefalt_term,definisjon,forhold_til_kilde,merknad, " +
-            " ansvarlig_virksomhet,eksempel,fagområde,bruksområde, omfang_tekst, omfang_uri,kontaktpunkt_harepost, kontaktpunkt_hartelefon,gyldig_fom) " +
-            " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+            " ansvarlig_virksomhet,eksempel,fagområde,bruksområde, omfang_tekst, omfang_uri,kontaktpunkt_harepost, kontaktpunkt_hartelefon,gyldig_fom,endret_av_brukernavn,sist_endret) " +
+            " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 
     private val updateBegrepSQL = "update conceptregistrations" +
             " set status=?,anbefalt_term=?,definisjon=?,forhold_til_kilde=?,merknad=?, " +
-            " ansvarlig_virksomhet=?,eksempel=?,fagområde=?,bruksområde=?, omfang_tekst=?, omfang_uri=?,kontaktpunkt_harepost=?, kontaktpunkt_hartelefon=?,gyldig_fom=? " +
+            " ansvarlig_virksomhet=?,eksempel=?,fagområde=?,bruksområde=?, omfang_tekst=?, omfang_uri=?,kontaktpunkt_harepost=?, kontaktpunkt_hartelefon=?,gyldig_fom=?, endret_av_brukernavn=?, sist_endret=? " +
             " where id=?"
 
     private val deleteBegrepSQL = "delete from conceptregistrations where id = ?"
@@ -275,6 +273,12 @@ class SqlStore(val connectionManager: ConnectionManager) {
                     } else {
                         begrepStmt?.setDate(15, null)
                     }
+
+                    begrepStmt?.setString(16,begrep.endringslogelement.brukerId)
+                    if (begrep.endringslogelement.endringstidspunkt!= null ) {
+                        begrepStmt?.setTimestamp(17, Timestamp.valueOf(begrep.endringslogelement.endringstidspunkt.toLocalDateTime()))
+                    }
+
                 } else {
                     begrepStmt = it.prepareStatement(updateBegrepSQL)
                     begrepStmt?.setInt(1, mapStatusToInt(begrep.status))
@@ -295,8 +299,12 @@ class SqlStore(val connectionManager: ConnectionManager) {
                     } else {
                         begrepStmt?.setDate(14, null)
                     }
-                    begrepStmt?.setString(15, begrep.id)
+                    begrepStmt?.setString(15,begrep.endringslogelement.brukerId)
+                    if (begrep.endringslogelement.endringstidspunkt!= null ) {
+                        begrepStmt?.setTimestamp(16, Timestamp.valueOf(begrep.endringslogelement.endringstidspunkt.toLocalDateTime()))
+                    }
 
+                    begrepStmt?.setString(17, begrep.id)
                     //Delete whatever is in there, then write out
                     deleteURITextForBegrep(begrep.id)
                 }
@@ -407,6 +415,16 @@ class SqlStore(val connectionManager: ConnectionManager) {
         }
 
         mappedBegrep.kildebeskrivelse.kilde = getSources(mappedBegrep.id)
+
+        mappedBegrep.endringslogelement = Endringslogelement()
+        mappedBegrep.endringslogelement.brukerId = result.getString("endret_av_brukernavn")
+
+        if (result.getDate("sist_endret") != null) {
+            val endringsTidspunkt = result.getTimestamp("sist_endret")
+            if (endringsTidspunkt != null) {
+                mappedBegrep.endringslogelement.endringstidspunkt = OffsetDateTime.of(endringsTidspunkt.toLocalDateTime(),null)
+            }
+        }
 
         return mappedBegrep
     }
