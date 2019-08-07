@@ -1,0 +1,244 @@
+openapi: 3.0.2
+info:
+  description: Tilgjengeliggjør begreper fra en begrepskatalog ihht SKOS-AP-NO
+  version: '1.0'
+  title: FDK sin begrepssamling
+  contact:
+    name: Brønnøysundregistrene
+    url: 'https://fellesdatakatalog.brreg.no'
+    email: fellesdatakatalog@brreg.no
+  license:
+    name: License of API
+    url: 'http://data.norge.no/nlod/no/2.0'
+tags:
+  - name: skos-ap-no
+    description: SKOS-AP-NO API
+servers:
+  - url: 'https://registrering-begrep-api.fellesdatakatalog.brreg.no/'
+    description: Produksjonsversjon av API server
+  - url: 'https://registrering-begrep-api.ut1.fellesdatakatalog.brreg.no/'
+    description: utviklingsversjon av API server
+paths:
+  /collections:
+    get:
+      tags:
+        - skos-ap-no
+      description: Returnerer samlinger av begreper
+      operationId: getCollections
+      parameters:
+        - name: publisher
+          in: query
+          description: Ansvarlig virksomhet
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            text/turtle:
+              example: |
+                @prefix schema: <http://schema.org/> .
+                @prefix dct:   <http://purl.org/dc/terms/> .
+                @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
+                @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+                @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+                @prefix skosno: <http://difi.no/skosno#> .
+                @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+                @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+                @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+                @prefix dcat:  <http://www.w3.org/ns/dcat#> .
+                @prefix xkos:  <http://rdf-vocabulary.ddialliance.org/xkos#> .
+
+                <http://data.brreg.no/begrep>
+                        a               skos:Collection ;
+                        rdfs:label      "begrepssamling" ;
+                        dct:identifier  "http://data.brreg.no/begrep" ;
+                        dct:publisher   <https://data.brreg.no/enhetsregisteret/api/enheter/974760673> ;
+                        skos:member     <http://data.brreg.no/begrep/48062> .
+
+                <http://data.skatteetaten.no/begrep>
+                        a               skos:Collection ;
+                        rdfs:label      "begrepssamling" ;
+                        dct:identifier  "http://data.brreg.no/begrep" ;
+                        dct:publisher   <https://data.brreg.no/enhetsregisteret/api/enheter/974760673> ;
+                        skos:member     <http://data.skatteetaten.no/begrep/12345> .
+
+                <http://data.brreg.no/begrep/48062>
+                        a                             skos:Concept ;
+                        skosno:betydningsbeskrivelse  [ a           skosno:Definisjon ;
+                                                        rdfs:label  "\"term som blir sett på som den best egnede for et bestemt begrep\""@nb ;
+                                                        dct:source  [ rdfs:label  "NORDTERM: Terminologiens terminologi. http://www.sprakradet.no/globalassets/sprakarbeid/terminologi/nordterm---terminologiens-terminologi---no-en---2011-01-27.pdf [Lest: 28.09.2017]"@nb ]
+                                                      ] ;
+                        dct:identifier                "https://jira.brreg.no/rest/api/2/issue/48062" ;
+                        dct:publisher                 <https://data.brreg.no/enhetsregisteret/api/enheter/974760673> ;
+                        dct:subject                   "Semantikk"@nb ;
+                        skosxl:prefLabel              [ a                   skosxl:Label ;
+                                                        skosxl:literalForm  "anbefalt term"@nb
+                                                      ] ;
+                        dcat:contactPoint             [ a                   vcard:Organization ;
+                                                        vcard:hasEmail      <mailto:informasjonsforvaltning@brreg.no> ;
+                                                        vcard:hasTelephone  <tel:+4775007500>
+                                                      ] .
+            application/ld+json:
+              example: |
+                {
+                  "@graph" : [ {
+                    "@id" : "_:b0",
+                    "@type" : "vcard:Organization",
+                    "hasEmail" : "mailto:informasjonsforvaltning@brreg.no",
+                    "hasTelephone" : "tel:+4775007500"
+                  }, {
+                    "@id" : "_:b1",
+                    "@type" : "skosxl:Label",
+                    "literalForm" : {
+                      "@language" : "nb",
+                      "@value" : "anbefalt term"
+                    }
+                  }, {
+                    "@id" : "_:b2",
+                    "@type" : "skosno:Definisjon",
+                    "source" : "_:b3",
+                    "label" : {
+                      "@language" : "nb",
+                      "@value" : "\"term som blir sett på som den best egnede for et bestemt begrep\""
+                    }
+                  }, {
+                    "@id" : "_:b3",
+                    "label" : {
+                      "@language" : "nb",
+                      "@value" : "NORDTERM: Terminologiens terminologi. http://www.sprakradet.no/globalassets/sprakarbeid/terminologi/nordterm---terminologiens-terminologi---no-en---2011-01-27.pdf [Lest: 28.09.2017]"
+                    }
+                  }, {
+                    "@id" : "http://data.brreg.no/begrep",
+                    "@type" : "skos:Collection",
+                    "identifier" : "http://data.brreg.no/begrep",
+                    "publisher" : "https://data.brreg.no/enhetsregisteret/api/enheter/974760673",
+                    "label" : "begrepssamling",
+                    "member" : "http://data.brreg.no/begrep/48062"
+                  }, {
+                    "@id" : "http://data.brreg.no/begrep/48062",
+                    "@type" : "skos:Concept",
+                    "betydningsbeskrivelse" : "_:b2",
+                    "identifier" : "https://jira.brreg.no/rest/api/2/issue/48062",
+                    "publisher" : "https://data.brreg.no/enhetsregisteret/api/enheter/974760673",
+                    "subject" : {
+                      "@language" : "nb",
+                      "@value" : "Semantikk"
+                    },
+                    "prefLabel" : "_:b1",
+                    "contactPoint" : "_:b0"
+                  }, {
+                    "@id" : "http://data.skatteetaten.no/begrep",
+                    "@type" : "skos:Collection",
+                    "identifier" : "http://data.brreg.no/begrep",
+                    "publisher" : "https://data.brreg.no/enhetsregisteret/api/enheter/974760673",
+                    "label" : "begrepssamling",
+                    "member" : "http://data.skatteetaten.no/begrep/12345"
+                  } ],
+                  "@id" : "urn:x-arq:DefaultGraphNode",
+                  "@context" : {
+                    "hasTelephone" : {
+                      "@id" : "http://www.w3.org/2006/vcard/ns#hasTelephone",
+                      "@type" : "@id"
+                    },
+                    "hasEmail" : {
+                      "@id" : "http://www.w3.org/2006/vcard/ns#hasEmail",
+                      "@type" : "@id"
+                    },
+                    "literalForm" : "http://www.w3.org/2008/05/skos-xl#literalForm",
+                    "contactPoint" : {
+                      "@id" : "http://www.w3.org/ns/dcat#contactPoint",
+                      "@type" : "@id"
+                    },
+                    "prefLabel" : {
+                      "@id" : "http://www.w3.org/2008/05/skos-xl#prefLabel",
+                      "@type" : "@id"
+                    },
+                    "subject" : "http://purl.org/dc/terms/subject",
+                    "publisher" : {
+                      "@id" : "http://purl.org/dc/terms/publisher",
+                      "@type" : "@id"
+                    },
+                    "identifier" : "http://purl.org/dc/terms/identifier",
+                    "betydningsbeskrivelse" : {
+                      "@id" : "http://difi.no/skosno#betydningsbeskrivelse",
+                      "@type" : "@id"
+                    },
+                    "member" : {
+                      "@id" : "http://www.w3.org/2004/02/skos/core#member",
+                      "@type" : "@id"
+                    },
+                    "label" : "http://www.w3.org/2000/01/rdf-schema#label",
+                    "source" : {
+                      "@id" : "http://purl.org/dc/terms/source",
+                      "@type" : "@id"
+                    },
+                    "schema" : "http://schema.org/",
+                    "dct" : "http://purl.org/dc/terms/",
+                    "skosxl" : "http://www.w3.org/2008/05/skos-xl#",
+                    "rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+                    "xsd" : "http://www.w3.org/2001/XMLSchema#",
+                    "skosno" : "http://difi.no/skosno#",
+                    "skos" : "http://www.w3.org/2004/02/skos/core#",
+                    "rdfs" : "http://www.w3.org/2000/01/rdf-schema#",
+                    "vcard" : "http://www.w3.org/2006/vcard/ns#",
+                    "dcat" : "http://www.w3.org/ns/dcat#",
+                    "xkos" : "http://rdf-vocabulary.ddialliance.org/xkos#"
+                  }
+                }
+            application/rdf+xml:
+              example: |
+                <rdf:RDF
+                    xmlns:dct="http://purl.org/dc/terms/"
+                    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                    xmlns:xkos="http://rdf-vocabulary.ddialliance.org/xkos#"
+                    xmlns:vcard="http://www.w3.org/2006/vcard/ns#"
+                    xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+                    xmlns:schema="http://schema.org/"
+                    xmlns:skosno="http://difi.no/skosno#"
+                    xmlns:dcat="http://www.w3.org/ns/dcat#"
+                    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+                    xmlns:skosxl="http://www.w3.org/2008/05/skos-xl#"
+                    xmlns:xsd="http://www.w3.org/2001/XMLSchema#" >
+                  <rdf:Description rdf:about="http://data.skatteetaten.no/begrep">
+                    <skos:member rdf:resource="http://data.skatteetaten.no/begrep/12345"/>
+                    <dct:publisher rdf:resource="https://data.brreg.no/enhetsregisteret/api/enheter/974760673"/>
+                    <dct:identifier>http://data.brreg.no/begrep</dct:identifier>
+                    <rdfs:label>begrepssamling</rdfs:label>
+                    <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Collection"/>
+                  </rdf:Description>
+                  <rdf:Description rdf:about="http://data.brreg.no/begrep/48062">
+                    <dcat:contactPoint rdf:nodeID="A0"/>
+                    <skosxl:prefLabel rdf:nodeID="A1"/>
+                    <dct:subject xml:lang="nb">Semantikk</dct:subject>
+                    <dct:publisher rdf:resource="https://data.brreg.no/enhetsregisteret/api/enheter/974760673"/>
+                    <dct:identifier>https://jira.brreg.no/rest/api/2/issue/48062</dct:identifier>
+                    <skosno:betydningsbeskrivelse rdf:nodeID="A2"/>
+                    <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+                  </rdf:Description>
+                  <rdf:Description rdf:nodeID="A0">
+                    <vcard:hasTelephone rdf:resource="tel:+4775007500"/>
+                    <vcard:hasEmail rdf:resource="mailto:informasjonsforvaltning@brreg.no"/>
+                    <rdf:type rdf:resource="http://www.w3.org/2006/vcard/ns#Organization"/>
+                  </rdf:Description>
+                  <rdf:Description rdf:about="http://data.brreg.no/begrep">
+                    <skos:member rdf:resource="http://data.brreg.no/begrep/48062"/>
+                    <dct:publisher rdf:resource="https://data.brreg.no/enhetsregisteret/api/enheter/974760673"/>
+                    <dct:identifier>http://data.brreg.no/begrep</dct:identifier>
+                    <rdfs:label>begrepssamling</rdfs:label>
+                    <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Collection"/>
+                  </rdf:Description>
+                  <rdf:Description rdf:nodeID="A1">
+                    <skosxl:literalForm xml:lang="nb">anbefalt term</skosxl:literalForm>
+                    <rdf:type rdf:resource="http://www.w3.org/2008/05/skos-xl#Label"/>
+                  </rdf:Description>
+                  <rdf:Description rdf:nodeID="A3">
+                    <rdfs:label xml:lang="nb">NORDTERM: Terminologiens terminologi. http://www.sprakradet.no/globalassets/sprakarbeid/terminologi/nordterm---terminologiens-terminologi---no-en---2011-01-27.pdf [Lest: 28.09.2017]</rdfs:label>
+                  </rdf:Description>
+                  <rdf:Description rdf:nodeID="A2">
+                    <dct:source rdf:nodeID="A3"/>
+                    <rdfs:label xml:lang="nb">"term som blir sett på som den best egnede for et bestemt begrep"</rdfs:label>
+                    <rdf:type rdf:resource="http://difi.no/skosno#Definisjon"/>
+                  </rdf:Description>
+                </rdf:RDF>
