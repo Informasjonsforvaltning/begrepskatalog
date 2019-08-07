@@ -10,6 +10,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 import java.time.LocalDate
+import java.time.OffsetDateTime
 import javax.servlet.http.HttpServletRequest
 
 
@@ -122,6 +123,9 @@ class ControllerTest {
                 omfang = omfangA()
                 kontaktpunkt = pkunktA()
                 gyldigFom = LocalDate.now()
+                endringslogelement = Endringslogelement()
+                endringslogelement.brukerId = "brukerIdA"
+                endringslogelement.endringstidspunkt = OffsetDateTime.now()
             }
 
     fun makeDataFilledBegrepB(): Begrep =
@@ -145,6 +149,9 @@ class ControllerTest {
                 omfang = omfangB()
                 kontaktpunkt = pkunktB()
                 gyldigFom = LocalDate.now().plusMonths(1)
+                endringslogelement = Endringslogelement()
+                endringslogelement.brukerId = "brukerIdB"
+                endringslogelement.endringstidspunkt = OffsetDateTime.now().plusMonths(1)
             }
 
     private fun omfangA(): URITekst {

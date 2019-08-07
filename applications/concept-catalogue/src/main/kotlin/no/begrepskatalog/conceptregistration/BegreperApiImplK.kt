@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiParam
 import no.begrepskatalog.conceptregistration.storage.SqlStore
 import no.begrepskatalog.generated.api.BegreperApi
 import no.begrepskatalog.generated.model.Begrep
+import no.begrepskatalog.generated.model.Endringslogelement
 import no.begrepskatalog.generated.model.Status
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -134,6 +135,14 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
         if (source.gyldigFom != null) {
             destination.gyldigFom = source.gyldigFom
         }
+
+        if (destination.endringslogelement == null) {
+            destination.endringslogelement = Endringslogelement()
+        }
+
+        destination.endringslogelement.brukerId = source.endringslogelement.brukerId
+        destination.endringslogelement.endringstidspunkt = source.endringslogelement.endringstidspunkt
+
         return destination
     }
 
