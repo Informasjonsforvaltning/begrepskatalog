@@ -312,27 +312,26 @@ class SqlStore(val connectionManager: ConnectionManager) {
                     } else {
                         begrepStmt?.setDate(14, null)
                     }
-                    begrepStmt?.setString(15,begrep.endringslogelement.brukerId)
 
                     if (begrep.endringslogelement!=null) {
 
                         if (begrep.endringslogelement.brukerId!= null) {
-                            begrepStmt?.setString(16,begrep.endringslogelement.brukerId)
+                            begrepStmt?.setString(15,begrep.endringslogelement.brukerId)
                         } else {
-                            begrepStmt?.setString(16,null)
+                            begrepStmt?.setString(15,null)
                         }
 
                         if (begrep.endringslogelement.endringstidspunkt!= null ) {
-                            begrepStmt?.setTimestamp(17, Timestamp.valueOf(begrep.endringslogelement.endringstidspunkt.toLocalDateTime()))
+                            begrepStmt?.setTimestamp(16, Timestamp.valueOf(begrep.endringslogelement.endringstidspunkt.toLocalDateTime()))
                         } else {
-                            begrepStmt?.setTimestamp(17, null)
+                            begrepStmt?.setTimestamp(16, null)
                         }
                     } else {
-                        begrepStmt?.setString(16,null)
-                        begrepStmt?.setTimestamp(17, null)
+                        begrepStmt?.setString(15,null)
+                        begrepStmt?.setTimestamp(16, null)
                     }
 
-                    begrepStmt?.setString(18, begrep.id)
+                    begrepStmt?.setString(17, begrep.id)
                     //Delete whatever is in there, then write out
                     deleteURITextForBegrep(begrep.id)
                 }
