@@ -29,10 +29,12 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
 
     override fun getBegrep(httpServletRequest: HttpServletRequest?, @PathVariable orgnumber: String?, status: Status?): ResponseEntity<MutableList<Begrep>> {
         logger.info("Get begrep $orgnumber")
-        var placeholderOrgnumber = "910244132"  //Ramsund og Rognand Revisjon
-
-        val result: MutableList<Begrep> = sqlStore.getBegrepByCompany(orgNumber = placeholderOrgnumber)
-        return ResponseEntity.ok(result)
+        if (orgnumber != null) {
+            val result: MutableList<Begrep> = sqlStore.getBegrepByCompany(orgnumber)
+            return ResponseEntity.ok(result)
+        } else {
+            return ResponseEntity(HttpStatus.NOT_FOUND)
+        }
     }
 
     override fun createBegrep(httpServletRequest: HttpServletRequest, @ApiParam(value = "", required = true) @Valid @RequestBody begrep: Begrep): ResponseEntity<Void> {
