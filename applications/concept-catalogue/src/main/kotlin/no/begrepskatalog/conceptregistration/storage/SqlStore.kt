@@ -367,7 +367,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
         if (forholdTilKilde == Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE) {
             return 3
         }
-        throw RuntimeException("Error converting forholdTilKilde to db ids, Got ${forholdTilKilde} Did not get one of (EGENDEFINERT,BASERTPAAKILDE,SITATFRAKILDE)")
+        return 1 //TODO: Actually die on this when the data is ok and frontend is ok
     }
 
     fun mapStatusToInt(status: Status): Int {
