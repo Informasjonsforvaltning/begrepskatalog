@@ -141,9 +141,10 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
         if (destination.endringslogelement == null) {
             destination.endringslogelement = Endringslogelement()
         }
-
-        destination.endringslogelement.brukerId = source.endringslogelement.brukerId
-        destination.endringslogelement.endringstidspunkt = source.endringslogelement.endringstidspunkt
+        if (source.endringslogelement != null) {
+            destination.endringslogelement.brukerId = source.endringslogelement.brukerId
+            destination.endringslogelement.endringstidspunkt = source.endringslogelement.endringstidspunkt
+        }
 
         return destination
     }
