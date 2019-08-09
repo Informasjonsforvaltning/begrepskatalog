@@ -52,8 +52,8 @@ class HarvestEndpoint(val sqlStore: SqlStore) {
     }
 
     fun convertBegrepIntoModel(begrep: Begrep, modelBuilder: ModelBuilder): Resource {
-        val sourceReference = if (begrep.forholdTilKilde != null) begrep.forholdTilKilde else ""
-        var sourceItself = if (begrep.kilde != null) begrep.kilde else ""
+        val sourceReference = if (begrep.kildebeskrivelse != null) begrep.kildebeskrivelse.forholdTilKilde.toString() else ""
+        var sourceItself = if (begrep.kildebeskrivelse != null && begrep.kildebeskrivelse.kilde != null && begrep.kildebeskrivelse.kilde.size > 0) begrep.kildebeskrivelse.kilde[0].uri + begrep.kildebeskrivelse.kilde[0].tekst else ""
         val merknad = if (begrep.merknad != null) begrep.merknad else ""
         val anbefaltTerm = if (begrep.anbefaltTerm != null) begrep.anbefaltTerm else ""
         val urlForAccessingThisBegrepsRegistration = baseURL + begrep.ansvarligVirksomhet.id + "/" + begrep.id
