@@ -1,12 +1,11 @@
 package no.begrepskatalog.conceptregistration
 
 import no.begrepskatalog.conceptregistration.storage.SqlStore
-import no.begrepskatalog.generated.model.Begrep
-import no.begrepskatalog.generated.model.Status
-import no.begrepskatalog.generated.model.Virksomhet
+import no.begrepskatalog.conceptregistration.validation.isValidBegrep
+import no.begrepskatalog.generated.model.*
 import org.junit.Assert.*
-import org.junit.Test
 import org.junit.Ignore
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -121,5 +120,95 @@ class ConceptRegistrationApplicationTests {
         sqlStore.deleteBegrepById(begrep.id)
 
         assertFalse(sqlStore.begrepExists(begrep))
+    }
+
+    @Test
+    fun testBegrepStatusMustNotBeUtkastDuringValidation() {
+        val begrep = createBegrep()
+
+        begrep.status = Status.PUBLISERT
+        assertTrue(isValidBegrep(begrep))
+
+        begrep.status = Status.GODKJENT
+        assertTrue(isValidBegrep(begrep))
+
+        begrep.status = Status.UTKAST
+        assertFalse(isValidBegrep(begrep))
+
+        begrep.status = null
+        assertFalse(isValidBegrep(begrep))
+    }
+
+    @Test
+    fun testBegrepAnbefaltTermMustBeSetAndNotEmpty() {
+        val begrep = createBegrep()
+        begrep.status = Status.GODKJENT
+
+        begrep.anbefaltTerm = null
+        assertFalse(isValidBegrep(begrep))
+
+        begrep.anbefaltTerm = ""
+        assertFalse(isValidBegrep(begrep))
+
+        begrep.anbefaltTerm = "   "
+        assertFalse(isValidBegrep(begrep))
+
+        begrep.anbefaltTerm = "anbefaltTerm"
+        assertTrue(isValidBegrep(begrep))
+    }
+
+    @Test
+    fun testBegrepDefinisjonValidationMustBeSetAndNotEmpty() {
+        val begrep = createBegrep()
+        begrep.status = Status.GODKJENT
+
+        begrep.definisjon = null
+        assertFalse(isValidBegrep(begrep))
+
+        begrep.definisjon = ""
+        assertFalse(isValidBegrep(begrep))
+
+        begrep.definisjon = "   "
+        assertFalse(isValidBegrep(begrep))
+
+        begrep.definisjon = "definisjon"
+        assertTrue(isValidBegrep(begrep))
+    }
+
+    @Test
+    fun testBegrepAnsvarligVirksomhetMustHaveAValidOrganisationNumber() {
+        val begrep = createBegrep()
+        begrep.status = Status.GODKJENT
+
+        begrep.ansvarligVirksomhet = null
+        assertFalse(isValidBegrep(begrep))
+
+        begrep.ansvarligVirksomhet = createTestVirksomhet().apply {
+            id = null
+        }
+        assertFalse(isValidBegrep(begrep))
+
+        begrep.ansvarligVirksomhet = createTestVirksomhet().apply {
+            id = ""
+        }
+        assertFalse(isValidBegrep(begrep))
+
+        begrep.ansvarligVirksomhet = createTestVirksomhet().apply {
+            id = "123"
+        }
+        assertFalse(isValidBegrep(begrep))
+
+        begrep.ansvarligVirksomhet = createTestVirksomhet().apply {
+            id = "123456789"
+        }
+        assertFalse(isValidBegrep(begrep))
+
+        begrep.ansvarligVirksomhet = createTestVirksomhet()
+        assertTrue(isValidBegrep(begrep))
+
+        begrep.ansvarligVirksomhet = createTestVirksomhet().apply {
+            id = "943574537"
+        }
+        assertTrue(isValidBegrep(begrep))
     }
 }
