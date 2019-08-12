@@ -2,10 +2,9 @@ package no.begrepskatalog.conceptregistration
 
 import io.swagger.annotations.ApiParam
 import no.begrepskatalog.conceptregistration.storage.SqlStore
+import no.begrepskatalog.conceptregistration.validation.isValidBegrep
 import no.begrepskatalog.generated.api.BegreperApi
-import no.begrepskatalog.generated.model.Begrep
-import no.begrepskatalog.generated.model.Endringslogelement
-import no.begrepskatalog.generated.model.Status
+import no.begrepskatalog.generated.model.*
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
@@ -79,7 +78,7 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
             sqlStore.saveBegrep(updatedBegrep)
             return ResponseEntity.ok(updatedBegrep)
         } else {
-            if (validatePublishableBegrep(updatedBegrep)) {
+            if (isValidBegrep(updatedBegrep)) {
                 sqlStore.saveBegrep(updatedBegrep)
                 logger.info("Begrep $updatedBegrep.id has passed validation for non draft begrep and has been saved ")
                 return ResponseEntity.ok(updatedBegrep)
@@ -87,9 +86,6 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
         }
         return ResponseEntity(HttpStatus.CONFLICT)
     }
-
-    private fun validatePublishableBegrep(updatedBegrep: Begrep) =
-            updatedBegrep.anbefaltTerm != null && updatedBegrep.definisjon != null
 
     fun updateBegrep(source: Begrep, destination: Begrep): Begrep {
         if (source.status != null) {
