@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.sql.*
 import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 private val logger: Logger = LoggerFactory.getLogger(SqlStore::class.java)
 
@@ -449,7 +450,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
         if (result.getDate("sist_endret") != null) {
             val endringsTidspunkt = result.getTimestamp("sist_endret")
             if (endringsTidspunkt != null) {
-                mappedBegrep.endringslogelement.endringstidspunkt = OffsetDateTime.of(endringsTidspunkt.toLocalDateTime(),null)
+                mappedBegrep.endringslogelement.endringstidspunkt = OffsetDateTime.of(endringsTidspunkt.toLocalDateTime(), ZoneOffset.ofHours(0))
             }
         }
 
