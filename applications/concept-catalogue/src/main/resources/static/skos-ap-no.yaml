@@ -37,6 +37,8 @@ paths:
           description: OK
           content:
             text/turtle:
+              schema:
+                $ref: "#/components/schemas/Turtle"
               example: |
                 @prefix schema: <http://schema.org/> .
                 @prefix dct:   <http://purl.org/dc/terms/> .
@@ -242,3 +244,7 @@ paths:
                     <rdf:type rdf:resource="http://difi.no/skosno#Definisjon"/>
                   </rdf:Description>
                 </rdf:RDF>
+components:
+  schemas:
+    Turtle:
+      type: object

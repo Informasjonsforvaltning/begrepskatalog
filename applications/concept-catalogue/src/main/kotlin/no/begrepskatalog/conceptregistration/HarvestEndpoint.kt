@@ -1,6 +1,7 @@
 package no.begrepskatalog.conceptregistration
 
 import no.begrepskatalog.conceptregistration.storage.SqlStore
+import no.begrepskatalog.generated.api.CollectionsApi
 import no.begrepskatalog.generated.model.Begrep
 import no.fdk.concept.builder.ModelBuilder
 import no.fdk.concept.builder.SKOSNO
@@ -17,14 +18,14 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @CrossOrigin(value = "*")
-class HarvestEndpoint(val sqlStore: SqlStore) {
+class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
 
     @Value("\${application.baseURL}")
     lateinit var baseURL: String
 
     private val logger = LoggerFactory.getLogger(HarvestEndpoint::class.java)
 
-    fun harvest(httpServletRequest: HttpServletRequest?): ResponseEntity<String> {
+    override fun getCollections(httpServletRequest: HttpServletRequest, publisher: String): ResponseEntity<Any> {
         logger.info("Harvest - request")
 
         val allPublishedBegrep = sqlStore.getAllPublishedBegrep()

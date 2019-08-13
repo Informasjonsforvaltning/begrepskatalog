@@ -1,5 +1,6 @@
 package no.begrepskatalog.conceptregistration
 
+import com.nhaarman.mockitokotlin2.mock
 import no.begrepskatalog.generated.model.Virksomhet
 import org.junit.Assert.assertNotNull
 import org.junit.Ignore
@@ -8,6 +9,7 @@ import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit4.SpringRunner
+import javax.servlet.http.HttpServletRequest
 
 @RunWith(SpringRunner::class)
 @SpringBootTest
@@ -27,12 +29,15 @@ class HarvestEndpointTest {
         }
         return testVirksomhet
     }
+
     @Ignore
     @Test
     fun testHarvesting() {
-        val someResponse = harvestEndpoint.harvest(null)
+        val httpServletRequestMock: HttpServletRequest = mock()
+        val someResponse = harvestEndpoint.getCollections(httpServletRequestMock, "910244132")
         assertNotNull(someResponse)
     }
+
     @Ignore
     @Test
     fun contextLoads() {
