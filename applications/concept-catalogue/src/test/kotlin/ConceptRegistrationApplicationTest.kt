@@ -1,21 +1,27 @@
 package no.begrepskatalog.conceptregistration
 
 import no.begrepskatalog.conceptregistration.storage.SqlStore
-import no.begrepskatalog.conceptregistration.validation.isValidBegrep
-import no.begrepskatalog.generated.model.*
+import no.begrepskatalog.generated.model.Begrep
+import no.begrepskatalog.generated.model.Status
+import no.begrepskatalog.generated.model.Virksomhet
 import org.junit.Assert.*
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.util.TestPropertyValues
+import org.springframework.context.ApplicationContextInitializer
+import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit4.SpringRunner
+import org.testcontainers.containers.PostgreSQLContainer
 import java.time.LocalDate
 import java.util.*
 
-@RunWith(SpringRunner::class)
 @SpringBootTest
+@RunWith(SpringRunner::class)
+@ContextConfiguration(initializers = [ConceptRegistrationApplicationTests.Initializer::class])
 class ConceptRegistrationApplicationTests {
 
     @Autowired
@@ -23,39 +29,31 @@ class ConceptRegistrationApplicationTests {
 
     private val logger = LoggerFactory.getLogger(ConceptRegistrationApplicationTests::class.java)
 
-    fun createTestVirksomhet() : no.begrepskatalog.generated.model.Virksomhet {
+    // Hack needed because testcontainers use of generics confuses Kotlin
+    // More info at: https://blog.producement.com/tech/spring-boot/test/postgres/kotlin/2019/03/28/docker-postgres-test.html
+    class KPostgreSQLContainer(imageName: String) : PostgreSQLContainer<KPostgreSQLContainer>(imageName)
 
-        val testVirksomhet = Virksomhet().apply {
-            id = "910244132"
-            navn = "Ramsund og Rognand revisjon"
-            orgPath = "/helt/feil/dummy/path"
-            prefLabel =  "preflabel"
-            uri = "ramsumdURI"
+    companion object {
+        private val postgreSQLContainer: KPostgreSQLContainer by lazy {
+            KPostgreSQLContainer("postgres:11.2")
+                    .withUsername("testuser")
+                    .withPassword("testpassword")
         }
-        return testVirksomhet
     }
 
-    @Ignore
-    @Test
-    fun contextLoads() {
-    }
-
-    @Ignore
-    @Test
-    fun buildSmallSetOfTestData() {
-        logger.info("Building test data!")
-
-        //Note that a company can have many begrep, but we do not want to create more than 1 in this test
-        val begreps = sqlStore.getBegrepByCompany("910244132")
-
-        if (begreps.isEmpty()) {
-            val testBegrep = createBegrep()
-            sqlStore.saveBegrep(testBegrep)
+    internal class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
+        override fun initialize(configurableApplicationContext: ConfigurableApplicationContext) {
+            postgreSQLContainer.start()
+            TestPropertyValues.of(
+                    "spring.datasource.url=" + "${postgreSQLContainer.jdbcUrl}&currentSchema=conceptregistration",
+                    "spring.datasource.username=" + postgreSQLContainer.username,
+                    "spring.datasource.password=" + postgreSQLContainer.password
+            ).applyTo(configurableApplicationContext.environment)
         }
     }
 
     private fun createBegrep(): Begrep {
-        val testBegrep = Begrep().apply {
+        return Begrep().apply {
             anbefaltTerm = "eplesaft"
             id = UUID.randomUUID().toString()
             ansvarligVirksomhet = createTestVirksomhet()
@@ -65,9 +63,18 @@ class ConceptRegistrationApplicationTests {
             status = Status.UTKAST
             gyldigFom = LocalDate.now()
         }
-        return testBegrep
     }
-    @Ignore
+
+    private fun createTestVirksomhet() : Virksomhet {
+        return Virksomhet().apply {
+            id = "910244132"
+            navn = "Ramsund og Rognand revisjon"
+            orgPath = "/helt/feil/dummy/path"
+            prefLabel =  "preflabel"
+            uri = "ramsumdURI"
+        }
+    }
+
     @Test
     fun saveEmptyBegrepToTestCreationOfId() {
         val emptyBegrep = Begrep().apply {
@@ -79,14 +86,13 @@ class ConceptRegistrationApplicationTests {
         assertNotNull(savedBegrep?.id)
     }
 
-    @Ignore
     @Test
     fun savePublishedBegrep() {
         var testBegrep = createBegrep()
         testBegrep.status = Status.PUBLISERT
         sqlStore.saveBegrep(testBegrep)
     }
-    @Ignore
+
     @Test
     fun testThatExistsWork() {
         val emptyBegrep = Begrep().apply {
@@ -100,7 +106,7 @@ class ConceptRegistrationApplicationTests {
             fail()
         }
     }
-    @Ignore
+
     @Test
     fun testExistsNotFalsePositive() {
         val emptyBegrep = Begrep().apply {
@@ -110,10 +116,11 @@ class ConceptRegistrationApplicationTests {
         assertFalse(sqlStore.begrepExists(emptyBegrep))
     }
 
-    @Ignore
     @Test
     fun testCreateAndDelete() {
         val begrep = createBegrep()
+        begrep.id = null
+
         sqlStore.saveBegrep(begrep)
         assertTrue(sqlStore.begrepExists(begrep))
 
