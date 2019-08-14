@@ -413,44 +413,36 @@ class SqlStore(val connectionManager: ConnectionManager) {
 
     fun mapToBegrep(result: ResultSet, virksomhet: Virksomhet): Begrep {
 
-        val mappedBegrep = Begrep()
-        mappedBegrep.id = result.getString("id")
-        mappedBegrep.status = mapStatus(result.getString("status"))
-        mappedBegrep.anbefaltTerm = result.getString("anbefalt_term")
-        mappedBegrep.definisjon = result.getString("definisjon")
-        mappedBegrep.kildebeskrivelse = Kildebeskrivelse()
-        mappedBegrep.kildebeskrivelse.forholdTilKilde = mapForholdTilKilde(result.getString("forhold_til_kilde"))
-        mappedBegrep.merknad = result.getString("merknad")
-        mappedBegrep.ansvarligVirksomhet = virksomhet
-        mappedBegrep.eksempel = result.getString("eksempel")
-        mappedBegrep.fagområde = result.getString("fagområde")
-        mappedBegrep.bruksområde = result.getString("bruksområde")
-
-        val omfang_text = result.getString("omfang_tekst")
-        val omfang_uri = result.getString("omfang_uri")
-        mappedBegrep.omfang = URITekst()
-        mappedBegrep.omfang.tekst = omfang_text
-        mappedBegrep.omfang.uri = omfang_uri
-
-        val kontaktpunkt_hartelefon = result.getString("kontaktpunkt_hartelefon")
-        val kontaktpunkt_harepost = result.getString("kontaktpunkt_harepost")
-        mappedBegrep.kontaktpunkt = Kontaktpunkt()
-        mappedBegrep.kontaktpunkt.harTelefon = kontaktpunkt_hartelefon
-        mappedBegrep.kontaktpunkt.harEpost = kontaktpunkt_harepost
-
-        if (result.getDate("gyldig_FOM") != null) {
-            mappedBegrep.gyldigFom = result.getDate("gyldig_FOM").toLocalDate()
-        }
-
-        mappedBegrep.kildebeskrivelse.kilde = getSources(mappedBegrep.id)
-
-        mappedBegrep.endringslogelement = Endringslogelement()
-        mappedBegrep.endringslogelement.brukerId = result.getString("endret_av_brukernavn")
-
-        if (result.getDate("sist_endret") != null) {
-            val endringsTidspunkt = result.getTimestamp("sist_endret")
-            if (endringsTidspunkt != null) {
-                mappedBegrep.endringslogelement.endringstidspunkt = OffsetDateTime.of(endringsTidspunkt.toLocalDateTime(), ZoneOffset.ofHours(0))
+        val mappedBegrep = Begrep().apply {
+            id = result.getString("id")
+            status = mapStatus(result.getString("status"))
+            anbefaltTerm = result.getString("anbefalt_term")
+            definisjon = result.getString("definisjon")
+            kildebeskrivelse = Kildebeskrivelse().apply {
+                forholdTilKilde = mapForholdTilKilde(result.getString("forhold_til_kilde"))
+                kilde = getSources(id)
+            }
+            merknad = result.getString("merknad")
+            ansvarligVirksomhet = virksomhet
+            eksempel = result.getString("eksempel")
+            fagområde = result.getString("fagområde")
+            bruksområde = result.getString("bruksområde")
+            omfang = URITekst()
+            omfang.tekst = result.getString("omfang_tekst")
+            omfang.uri = result.getString("omfang_uri")
+            kontaktpunkt = Kontaktpunkt().apply {
+                harTelefon = result.getString("kontaktpunkt_hartelefon")
+                harEpost = result.getString("kontaktpunkt_harepost")
+            }
+            if (result.getDate("gyldig_FOM") != null) {
+                gyldigFom = result.getDate("gyldig_FOM").toLocalDate()
+            }
+            endringslogelement = Endringslogelement().apply {
+                brukerId = result.getString("endret_av_brukernavn")
+                if (result.getDate("sist_endret") != null && result.getTimestamp("sist_endret") != null) {
+                    val endringsTidspunkt = result.getTimestamp("sist_endret")
+                    endringstidspunkt = OffsetDateTime.of(endringsTidspunkt.toLocalDateTime(), ZoneOffset.ofHours(0))
+                }
             }
         }
 
@@ -465,7 +457,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
             var success = stmt.execute()
 
             var results = stmt.resultSet
-            if (results.next()) {
+            while (results.next()) {
                 val uriText = URITekst()
                 uriText.uri = results.getString("uri")
                 uriText.tekst = results.getString("text")
@@ -477,12 +469,14 @@ class SqlStore(val connectionManager: ConnectionManager) {
 
     fun mapVirksomhet(result: ResultSet): Virksomhet {
 
-        val virksomhet = Virksomhet()
-        virksomhet.id = result.getString("org_number")
-        virksomhet.uri = result.getString("uri")
-        virksomhet.navn = result.getString("name")
-        virksomhet.orgPath = result.getString("orgpath")
-        virksomhet.prefLabel = result.getString("preflabel")
+        val virksomhet = Virksomhet().apply {
+            id = result.getString("org_number")
+            uri = result.getString("uri")
+            navn = result.getString("name")
+            orgPath = result.getString("orgpath")
+            prefLabel = result.getString("preflabel")
+        }
+
         return virksomhet
     }
 
