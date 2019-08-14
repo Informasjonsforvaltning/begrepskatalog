@@ -418,8 +418,11 @@ class SqlStore(val connectionManager: ConnectionManager) {
         mappedBegrep.status = mapStatus(result.getString("status"))
         mappedBegrep.anbefaltTerm = result.getString("anbefalt_term")
         mappedBegrep.definisjon = result.getString("definisjon")
+
         mappedBegrep.kildebeskrivelse = Kildebeskrivelse()
         mappedBegrep.kildebeskrivelse.forholdTilKilde = mapForholdTilKilde(result.getString("forhold_til_kilde"))
+        mappedBegrep.kildebeskrivelse.kilde = getSources(mappedBegrep.id)
+
         mappedBegrep.merknad = result.getString("merknad")
         mappedBegrep.ansvarligVirksomhet = virksomhet
         mappedBegrep.eksempel = result.getString("eksempel")
@@ -441,8 +444,6 @@ class SqlStore(val connectionManager: ConnectionManager) {
         if (result.getDate("gyldig_FOM") != null) {
             mappedBegrep.gyldigFom = result.getDate("gyldig_FOM").toLocalDate()
         }
-
-        mappedBegrep.kildebeskrivelse.kilde = getSources(mappedBegrep.id)
 
         mappedBegrep.endringslogelement = Endringslogelement()
         mappedBegrep.endringslogelement.brukerId = result.getString("endret_av_brukernavn")
