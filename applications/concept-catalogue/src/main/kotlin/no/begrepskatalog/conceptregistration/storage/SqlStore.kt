@@ -466,7 +466,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
             var success = stmt.execute()
 
             var results = stmt.resultSet
-            if (results.next()) {
+            while (results.next()) {
                 val uriText = URITekst()
                 uriText.uri = results.getString("uri")
                 uriText.tekst = results.getString("text")
