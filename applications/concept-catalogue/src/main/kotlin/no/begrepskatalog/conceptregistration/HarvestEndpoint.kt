@@ -54,6 +54,7 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
 
     fun convertBegrepIntoModel(begrep: Begrep, modelBuilder: ModelBuilder): Resource {
         val sourceReference = if (begrep.kildebeskrivelse != null) begrep.kildebeskrivelse.forholdTilKilde.toString() else ""
+        val validFrom = if (begrep.gyldigFom != null) begrep.gyldigFom.toString() else ""
         var sourceItself = if (begrep.kildebeskrivelse != null && begrep.kildebeskrivelse.kilde != null && begrep.kildebeskrivelse.kilde.size > 0) begrep.kildebeskrivelse.kilde[0].uri + begrep.kildebeskrivelse.kilde[0].tekst else ""
         val merknad = if (begrep.merknad != null) begrep.merknad else ""
         val anbefaltTerm = if (begrep.anbefaltTerm != null) begrep.anbefaltTerm else ""
@@ -65,7 +66,7 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
                 .source(sourceItself, "nb", sourceReference)
                 .audience("allmenheten", "nb")
                 .scopeNote(merknad, "nb")
-                .modified(begrep.gyldigFom.toString())
+                .modified(validFrom)
                 .build()
                 .identifier(begrep.id)
                 .preferredTerm(anbefaltTerm, "no")
