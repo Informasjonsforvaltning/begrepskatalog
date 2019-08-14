@@ -25,7 +25,7 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
 
     private val logger = LoggerFactory.getLogger(HarvestEndpoint::class.java)
 
-    override fun getCollections(httpServletRequest: HttpServletRequest, publisher: String): ResponseEntity<Any> {
+    override fun getCollections(httpServletRequest: HttpServletRequest, publisher: String?): ResponseEntity<Any> {
         logger.info("Harvest - request")
 
         val allPublishedBegrep = sqlStore.getAllPublishedBegrep()
