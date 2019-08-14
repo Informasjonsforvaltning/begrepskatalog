@@ -156,6 +156,14 @@ components:
             $ref: "#/components/schemas/Status"
           anbefaltTerm:
             type: string
+          tillattTerm:
+            type: array
+            items:
+              type: string
+          frarådetTerm:
+            type: array
+            items:
+              type: string
           definisjon:
             type: string
           kildebeskrivelse:
@@ -169,7 +177,9 @@ components:
           fagområde:
             type: string
           bruksområde:
-            type: string
+            type: array
+            items:
+              type: string
           omfang:
             $ref: "#/components/schemas/URITekst"
           kontaktpunkt:
