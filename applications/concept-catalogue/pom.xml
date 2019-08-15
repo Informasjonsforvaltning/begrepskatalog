@@ -102,33 +102,21 @@
 			<artifactId>validation-api</artifactId>
 		</dependency>
 
-		<!-- The local jar for https://github.com/Informasjonsforvaltning/fdk-concept-builder -->
+		<!-- The local jar for https://github.com/difi/skos-ap-no-tools.git -->
 		<dependency>
-			<groupId>concept-builder.group</groupId>
-			<artifactId>fdk-concept-builder</artifactId>
-			<version>${version.fdk-concept-builder}</version>
+			<groupId>no.difi.skos-ap-no</groupId>
+			<artifactId>concept-builder</artifactId>
+			<version>1.0-SNAPSHOT</version>
 			<scope>system</scope>
-			<systemPath>${basedir}/libs/fdk-concept-builder-1.0-SNAPSHOT.jar</systemPath>
+			<systemPath>${basedir}/libs/concept-builder-1.0-SNAPSHOT.jar</systemPath>
 		</dependency>
 
 
 		<!-- Dependencies from https://github.com/Informasjonsforvaltning/fdk-concept-builder -->
 		<dependency>
 			<groupId>org.apache.jena</groupId>
-			<artifactId>jena-fuseki-core</artifactId>
-			<version>3.8.0</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.jena</groupId>
-			<artifactId>jena-base</artifactId>
-			<version>3.8.0</version>
-			<type>pom</type>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.jena</groupId>
 			<artifactId>apache-jena-libs</artifactId>
-			<version>3.8.0</version>
+			<version>3.9.0</version>
 			<type>pom</type>
 		</dependency>
 </dependencies>
