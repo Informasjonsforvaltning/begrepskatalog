@@ -28,8 +28,8 @@ paths:
       parameters:
         - name: publisher
           in: query
-          description: Ansvarlig virksomhet
-          required: false
+          description: Ansvarlig virksomhet sitt organisasjonsnummer
+          required: true
           schema:
             type: string
       responses:
@@ -58,13 +58,6 @@ paths:
                           dct:identifier  "http://data.brreg.no/begrep" ;
                           dct:publisher   <https://data.brreg.no/enhetsregisteret/api/enheter/974760673> ;
                           skos:member     <http://data.brreg.no/begrep/48062> .
-
-                  <http://data.skatteetaten.no/begrep>
-                          a               skos:Collection ;
-                          rdfs:label      "begrepssamling" ;
-                          dct:identifier  "http://data.brreg.no/begrep" ;
-                          dct:publisher   <https://data.brreg.no/enhetsregisteret/api/enheter/974760673> ;
-                          skos:member     <http://data.skatteetaten.no/begrep/12345> .
 
                   <http://data.brreg.no/begrep/48062>
                           a                             skos:Concept ;
@@ -132,13 +125,6 @@ paths:
                       },
                       "prefLabel" : "_:b1",
                       "contactPoint" : "_:b0"
-                    }, {
-                      "@id" : "http://data.skatteetaten.no/begrep",
-                      "@type" : "skos:Collection",
-                      "identifier" : "http://data.brreg.no/begrep",
-                      "publisher" : "https://data.brreg.no/enhetsregisteret/api/enheter/974760673",
-                      "label" : "begrepssamling",
-                      "member" : "http://data.skatteetaten.no/begrep/12345"
                     } ],
                     "@id" : "urn:x-arq:DefaultGraphNode",
                     "@context" : {
@@ -207,13 +193,6 @@ paths:
                       xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
                       xmlns:skosxl="http://www.w3.org/2008/05/skos-xl#"
                       xmlns:xsd="http://www.w3.org/2001/XMLSchema#" >
-                    <rdf:Description rdf:about="http://data.skatteetaten.no/begrep">
-                      <skos:member rdf:resource="http://data.skatteetaten.no/begrep/12345"/>
-                      <dct:publisher rdf:resource="https://data.brreg.no/enhetsregisteret/api/enheter/974760673"/>
-                      <dct:identifier>http://data.brreg.no/begrep</dct:identifier>
-                      <rdfs:label>begrepssamling</rdfs:label>
-                      <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Collection"/>
-                    </rdf:Description>
                     <rdf:Description rdf:about="http://data.brreg.no/begrep/48062">
                       <dcat:contactPoint rdf:nodeID="A0"/>
                       <skosxl:prefLabel rdf:nodeID="A1"/>
