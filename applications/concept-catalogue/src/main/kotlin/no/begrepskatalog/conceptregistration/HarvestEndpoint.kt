@@ -3,9 +3,8 @@ package no.begrepskatalog.conceptregistration
 import no.begrepskatalog.conceptregistration.storage.SqlStore
 import no.begrepskatalog.generated.api.CollectionsApi
 import no.begrepskatalog.generated.model.Begrep
-import no.fdk.concept.builder.ModelBuilder
-import no.fdk.concept.builder.SKOSNO
-import org.apache.jena.rdf.model.Model
+import no.difi.skos_ap_no.concept.builder.CollectionBuilder
+import no.difi.skos_ap_no.concept.builder.ModelBuilder
 import org.apache.jena.rdf.model.Resource
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -32,45 +31,49 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
 
         logger.info("Harvest found ${allPublishedBegrep.size} Begrep")
 
-        val allConvertedBegrep = mutableListOf<Resource>()
-
-        val modelBuilder = ModelBuilder.builder()
+        var collectionBuilder = ModelBuilder.builder()
+                                    .collectionBuilder("https://registrering-begrep.ut1.fellesdatakatalog.brreg.no/")
+                                        .publisher(publisher)
+                                        .name(publisher + " sin samling")
 
         for (begrep in allPublishedBegrep) {
-            val resource = convertBegrepIntoModel(begrep, modelBuilder)
-            allConvertedBegrep.add(resource)
-            modelBuilder.collectionBuilder("")
-                    .publisher(begrep.ansvarligVirksomhet.id)
-                    .member(resource)
+            appendBegrepToCollection(begrep, collectionBuilder)
         }
 
-        var collectionModel: Model = modelBuilder.collectionBuilder("https://registrering-begrep.ut1.fellesdatakatalog.brreg.no/").build()
         val writer = StringWriter()
-        collectionModel.write(writer, "TURTLE")
+        collectionBuilder.build().build().write(writer, "TURTLE")
         println(writer.buffer)
 
         return ResponseEntity.ok(writer.buffer.toString())
     }
 
-    fun convertBegrepIntoModel(begrep: Begrep, modelBuilder: ModelBuilder): Resource {
+    fun appendBegrepToCollection(begrep: Begrep, collectionBuilder: CollectionBuilder): Resource {
         val sourceReference = if (begrep.kildebeskrivelse != null) begrep.kildebeskrivelse.forholdTilKilde.toString() else ""
-        val validFrom = if (begrep.gyldigFom != null) begrep.gyldigFom.toString() else ""
         var sourceItself = if (begrep.kildebeskrivelse != null && begrep.kildebeskrivelse.kilde != null && begrep.kildebeskrivelse.kilde.size > 0) begrep.kildebeskrivelse.kilde[0].uri + begrep.kildebeskrivelse.kilde[0].tekst else ""
-        val merknad = if (begrep.merknad != null) begrep.merknad else ""
-        val anbefaltTerm = if (begrep.anbefaltTerm != null) begrep.anbefaltTerm else ""
         val urlForAccessingThisBegrepsRegistration = baseURL + begrep.ansvarligVirksomhet.id + "/" + begrep.id
-        val resource = modelBuilder.conceptBuilder(urlForAccessingThisBegrepsRegistration)
+        return collectionBuilder.conceptBuilder(urlForAccessingThisBegrepsRegistration)
                 .publisher(begrep.ansvarligVirksomhet.id)
-                .definitionBuilder(SKOSNO.Definisjon)
-                .text(begrep.definisjon, "nb")
-                .source(sourceItself, "nb", sourceReference)
-                .audience("allmenheten", "nb")
-                .scopeNote(merknad, "nb")
-                .modified(validFrom)
-                .build()
+                .definitionBuilder()
+                    .text(begrep.definisjon, "nb")
+                    .sourceBuilder()
+                        .label(sourceItself, "nb")
+                        .seeAlso(sourceReference)
+                        .build()
+                    .audience("allmenheten", "nb")
+                    .scopeNote(begrep.merknad ?: "", "nb")
+                    .modified(begrep.gyldigFom)
+                    .build()
                 .identifier(begrep.id)
-                .preferredTerm(anbefaltTerm, "no")
+                .prefLabelBuilder()
+                    .label(begrep.anbefaltTerm ?: "", "no")
+                    .build()
+                .example(begrep.eksempel, "nb")
+                .subject(begrep.fagområde, "nb")
+                .domainOfUse(begrep.bruksområde, "nb")
+                .contactPointBuilder()
+                    .email(begrep.kontaktpunkt.harEpost ?: "")
+                    .telephone(begrep.kontaktpunkt.harTelefon ?: "")
+                    .build()
                 .resource
-        return resource
     }
 }
