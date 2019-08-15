@@ -24,19 +24,19 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
 
     private val logger = LoggerFactory.getLogger(HarvestEndpoint::class.java)
 
-    override fun getCollections(httpServletRequest: HttpServletRequest, publisher: String?): ResponseEntity<Any> {
+    override fun getCollections(httpServletRequest: HttpServletRequest, publisher: String): ResponseEntity<Any> {
         logger.info("Harvest - request")
 
-        val allPublishedBegrep = sqlStore.getAllPublishedBegrep()
+        val allPublishedBegrepByCompany = sqlStore.getBegrepByCompany(publisher)
 
-        logger.info("Harvest found ${allPublishedBegrep.size} Begrep")
+        logger.info("Harvest found ${allPublishedBegrepByCompany.size} Begrep")
 
         var collectionBuilder = ModelBuilder.builder()
                                     .collectionBuilder("https://registrering-begrep.ut1.fellesdatakatalog.brreg.no/")
                                         .publisher(publisher)
                                         .name(publisher + " sin samling")
 
-        for (begrep in allPublishedBegrep) {
+        for (begrep in allPublishedBegrepByCompany) {
             appendBegrepToCollection(begrep, collectionBuilder)
         }
 
