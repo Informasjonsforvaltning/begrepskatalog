@@ -51,7 +51,7 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
         val sourceReference = if (begrep.kildebeskrivelse != null) begrep.kildebeskrivelse.forholdTilKilde.toString() else ""
         var sourceItself = if (begrep.kildebeskrivelse != null && begrep.kildebeskrivelse.kilde != null && begrep.kildebeskrivelse.kilde.size > 0) begrep.kildebeskrivelse.kilde[0].uri + begrep.kildebeskrivelse.kilde[0].tekst else ""
         val urlForAccessingThisBegrepsRegistration = baseURL + begrep.ansvarligVirksomhet.id + "/" + begrep.id
-        return collectionBuilder.conceptBuilder(urlForAccessingThisBegrepsRegistration)
+        val conceptBuilder = collectionBuilder.conceptBuilder(urlForAccessingThisBegrepsRegistration)
                 .publisher(begrep.ansvarligVirksomhet.id)
                 .definitionBuilder()
                     .text(begrep.definisjon, "nb")
@@ -69,11 +69,13 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
                     .build()
                 .example(begrep.eksempel, "nb")
                 .subject(begrep.fagområde, "nb")
-                .domainOfUse(begrep.bruksområde, "nb")
                 .contactPointBuilder()
                     .email(begrep.kontaktpunkt.harEpost ?: "")
                     .telephone(begrep.kontaktpunkt.harTelefon ?: "")
                     .build()
-                .resource
+
+        begrep.bruksområde.forEach { conceptBuilder.domainOfUse(it, "nb") }
+
+        return conceptBuilder.resource
     }
 }
