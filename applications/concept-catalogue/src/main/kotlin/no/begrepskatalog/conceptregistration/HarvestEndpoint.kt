@@ -51,7 +51,7 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
         val sourceReference = if (begrep.kildebeskrivelse != null) begrep.kildebeskrivelse.forholdTilKilde.toString() else ""
         var sourceItself = if (begrep.kildebeskrivelse != null && begrep.kildebeskrivelse.kilde != null && begrep.kildebeskrivelse.kilde.size > 0) begrep.kildebeskrivelse.kilde[0].uri + begrep.kildebeskrivelse.kilde[0].tekst else ""
         val urlForAccessingThisBegrepsRegistration = baseURL + begrep.ansvarligVirksomhet.id + "/" + begrep.id
-        val conceptBuilder = collectionBuilder.conceptBuilder(urlForAccessingThisBegrepsRegistration)
+        var builder = collectionBuilder.conceptBuilder(urlForAccessingThisBegrepsRegistration)
                 .publisher(begrep.ansvarligVirksomhet.id)
                 .definitionBuilder()
                     .text(begrep.definisjon, "nb")
@@ -74,8 +74,16 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
                     .telephone(begrep.kontaktpunkt.harTelefon ?: "")
                     .build()
 
-        begrep.bruksområde.forEach { conceptBuilder.domainOfUse(it, "nb") }
+        begrep.bruksområde.forEach { builder = builder.domainOfUse(it, "nb") }
 
-        return conceptBuilder.resource
+        var altLabelBuilder = builder.altLabelBuilder()
+        begrep.tillattTerm.forEach { altLabelBuilder = altLabelBuilder.label(it, "nb") }
+        builder = altLabelBuilder.build()
+
+        var hiddenLabelBuilder = builder.hiddenLabelBuilder()
+        begrep.frarådetTerm.forEach { hiddenLabelBuilder = hiddenLabelBuilder.label(it, "nb") }
+        builder = hiddenLabelBuilder.build()
+
+        return builder.resource
     }
 }
