@@ -57,7 +57,7 @@ class ConceptRegistrationApplicationTests {
             anbefaltTerm = "eplesaft"
             id = UUID.randomUUID().toString()
             ansvarligVirksomhet = createTestVirksomhet()
-            bruksområde = "Særavgift/Særavgift - Avgift på alkoholfrie drikkevarer"
+            bruksområde = listOf("Særavgift/Særavgift - Avgift på alkoholfrie drikkevarer")
             definisjon = "saft uten tilsatt sukker som er basert på epler"
             eksempel = "DummyEksempel"
             status = Status.UTKAST
@@ -127,5 +127,109 @@ class ConceptRegistrationApplicationTests {
         sqlStore.deleteBegrepById(begrep.id)
 
         assertFalse(sqlStore.begrepExists(begrep))
+    }
+
+    @Test
+    fun testCreateBegrepWithTillattTerm() {
+        val begrep = createBegrep()
+        begrep.id = null
+        val tillattTerm = listOf("a", "b", "c")
+
+        begrep.tillattTerm = tillattTerm
+
+        val savedBegrep = sqlStore.saveBegrep(begrep)
+        assertNotNull(savedBegrep)
+        assertTrue(sqlStore.begrepExists(begrep))
+
+        val retrievedBegrep = sqlStore.getBegrepById(savedBegrep!!.id)
+        assertNotNull(retrievedBegrep)
+        assertArrayEquals(tillattTerm.toTypedArray(), retrievedBegrep!!.tillattTerm.toTypedArray())
+    }
+
+    @Test
+    fun testCreateBegrepWithFrarådetTerm() {
+        val begrep = createBegrep()
+        begrep.id = null
+        val frarådetTerm = listOf("a", "b", "c")
+
+        begrep.frarådetTerm = frarådetTerm
+
+        val savedBegrep = sqlStore.saveBegrep(begrep)
+        assertNotNull(savedBegrep)
+        assertTrue(sqlStore.begrepExists(begrep))
+
+        val retrievedBegrep = sqlStore.getBegrepById(savedBegrep!!.id)
+        assertNotNull(retrievedBegrep)
+        assertArrayEquals(frarådetTerm.toTypedArray(), retrievedBegrep!!.frarådetTerm.toTypedArray())
+    }
+
+
+    @Test
+    fun testUpdateBegrepWithTillattTerm() {
+        val begrep = createBegrep()
+        begrep.id = null
+        val tillattTermInitial = listOf("a", "b", "c")
+        val tillattTermUpdated = listOf("a", "b", "c", "d")
+
+        begrep.tillattTerm = tillattTermInitial
+
+        val savedBegrep = sqlStore.saveBegrep(begrep)
+        assertNotNull(savedBegrep)
+        assertTrue(sqlStore.begrepExists(begrep))
+
+        val retrievedBegrep = sqlStore.getBegrepById(savedBegrep!!.id)
+        assertNotNull(retrievedBegrep)
+        assertArrayEquals(tillattTermInitial.toTypedArray(), retrievedBegrep!!.tillattTerm.toTypedArray())
+
+        retrievedBegrep.tillattTerm = tillattTermUpdated
+        sqlStore.saveBegrep(retrievedBegrep)
+
+        val updatedBegrep = sqlStore.getBegrepById(retrievedBegrep!!.id)
+        assertNotNull(updatedBegrep)
+        assertArrayEquals(tillattTermUpdated.toTypedArray(), updatedBegrep!!.tillattTerm.toTypedArray())
+    }
+
+    @Test
+    fun testUpdateBegrepWithFrarådetTerm() {
+        val begrep = createBegrep()
+        begrep.id = null
+        val frarådetTermInitial = listOf("a", "b", "c")
+        val frarådetTermUpdated = listOf("a", "b", "c", "d")
+
+        begrep.frarådetTerm = frarådetTermInitial
+
+        val savedBegrep = sqlStore.saveBegrep(begrep)
+        assertNotNull(savedBegrep)
+        assertTrue(sqlStore.begrepExists(begrep))
+
+        val retrievedBegrep = sqlStore.getBegrepById(savedBegrep!!.id)
+        assertNotNull(retrievedBegrep)
+        assertArrayEquals(frarådetTermInitial.toTypedArray(), retrievedBegrep!!.frarådetTerm.toTypedArray())
+
+        retrievedBegrep.frarådetTerm = frarådetTermUpdated
+        sqlStore.saveBegrep(retrievedBegrep)
+
+        val updatedBegrep = sqlStore.getBegrepById(retrievedBegrep!!.id)
+        assertNotNull(updatedBegrep)
+        assertArrayEquals(frarådetTermUpdated.toTypedArray(), updatedBegrep!!.frarådetTerm.toTypedArray())
+    }
+
+    @Test
+    fun testEnsureNullBruksområdeDoesNotThrowErrors() {
+        val begrep = createBegrep()
+        begrep.id = null
+        begrep.bruksområde = null
+        begrep.tillattTerm = null
+        begrep.frarådetTerm = null
+
+        val savedBegrep = sqlStore.saveBegrep(begrep)
+        assertNotNull(savedBegrep)
+        assertTrue(sqlStore.begrepExists(begrep))
+
+        val retrievedBegrep = sqlStore.getBegrepById(savedBegrep!!.id)
+        assertNotNull(retrievedBegrep)
+        assertTrue(retrievedBegrep!!.bruksområde.isEmpty())
+        assertTrue(retrievedBegrep.tillattTerm.isEmpty())
+        assertTrue(retrievedBegrep.frarådetTerm.isEmpty())
     }
 }

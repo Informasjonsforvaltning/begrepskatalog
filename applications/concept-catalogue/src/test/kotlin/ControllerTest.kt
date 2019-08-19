@@ -119,7 +119,7 @@ class ControllerTest {
                 merknad = "testbegrepA"
                 eksempel = "bergenA"
                 fagområde = "fødeA"
-                bruksområde = "medisinA"
+                bruksområde = listOf("medisinA")
                 omfang = omfangA()
                 kontaktpunkt = pkunktA()
                 gyldigFom = LocalDate.now()
@@ -145,7 +145,7 @@ class ControllerTest {
                 merknad = "testbegrepB"
                 eksempel = "bergenB"
                 fagområde = "fødeB"
-                bruksområde = "medisinB"
+                bruksområde = listOf("medisinB")
                 omfang = omfangB()
                 kontaktpunkt = pkunktB()
                 gyldigFom = LocalDate.now().plusMonths(1)

@@ -19,6 +19,8 @@ class SqlStore(val connectionManager: ConnectionManager) {
 
     private val DB_STATUS_PUBLISHED = 3
 
+    private val STRING_LIST_DELIMITER= "::"
+
     private val fetchURITextsByConceptURI = "select * from uritext u, conceptregistration_uritexts coupling where u.id = coupling.uritext and coupling.registration =  ? "
 
     private val fetchBegrepByCompanySQL = "select * from conceptregistrations c LEFT JOIN  conceptregistration.status s on c.status = s.id where ansvarlig_virksomhet = ? "
@@ -40,12 +42,14 @@ class SqlStore(val connectionManager: ConnectionManager) {
     private val addCupling = "insert into conceptregistration_URITexts(registration, URIText) values (?,?)"
 
     private val saveBegrepSQL = "insert into conceptregistrations(id,status,anbefalt_term,definisjon,forhold_til_kilde,merknad, " +
-            " ansvarlig_virksomhet,eksempel,fagområde,bruksområde, omfang_tekst, omfang_uri,kontaktpunkt_harepost, kontaktpunkt_hartelefon,gyldig_fom,endret_av_brukernavn,sist_endret) " +
-            " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+            " ansvarlig_virksomhet,eksempel,fagområde,bruksområde, omfang_tekst, omfang_uri,kontaktpunkt_harepost, kontaktpunkt_hartelefon,gyldig_fom,endret_av_brukernavn,sist_endret," +
+            " tillatt_term, frarådet_term) " +
+            " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 
     private val updateBegrepSQL = "update conceptregistrations" +
             " set status=?,anbefalt_term=?,definisjon=?,forhold_til_kilde=?,merknad=?, " +
-            " ansvarlig_virksomhet=?,eksempel=?,fagområde=?,bruksområde=?, omfang_tekst=?, omfang_uri=?,kontaktpunkt_harepost=?, kontaktpunkt_hartelefon=?,gyldig_fom=?, endret_av_brukernavn=?, sist_endret=? " +
+            " ansvarlig_virksomhet=?,eksempel=?,fagområde=?,bruksområde=?, omfang_tekst=?, omfang_uri=?,kontaktpunkt_harepost=?, kontaktpunkt_hartelefon=?,gyldig_fom=?, endret_av_brukernavn=?, sist_endret=?," +
+            " tillatt_term=?, frarådet_term=?" +
             " where id=?"
 
     private val deleteBegrepSQL = "delete from conceptregistrations where id = ?"
@@ -249,6 +253,10 @@ class SqlStore(val connectionManager: ConnectionManager) {
                 logger.info("Virksomhet ${storedVirksomhet.id} already stored")
             }
 
+            val bruksområde: String = begrep.bruksområde?.let { list -> list.joinToString(STRING_LIST_DELIMITER) } ?: ""
+            val tillattTerm: String = begrep.tillattTerm?.let { list -> list.joinToString(STRING_LIST_DELIMITER) } ?: ""
+            val frarådetTerm: String = begrep.frarådetTerm?.let { list -> list.joinToString(STRING_LIST_DELIMITER) } ?: ""
+
             try {
                 var begrepStmt : PreparedStatement? = null
                 if (create) {
@@ -262,7 +270,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
                     begrepStmt?.setString(7, virksomhet.id)
                     begrepStmt?.setString(8, begrep.eksempel)
                     begrepStmt?.setString(9, begrep.fagområde)
-                    begrepStmt?.setString(10, begrep.bruksområde)
+                    begrepStmt?.setString(10, bruksområde)
 
                     begrepStmt?.setString(11, begrep.omfang?.tekst)
                     begrepStmt?.setString(12, begrep.omfang?.uri)
@@ -293,6 +301,8 @@ class SqlStore(val connectionManager: ConnectionManager) {
                         begrepStmt?.setTimestamp(17, null)
                     }
 
+                    begrepStmt?.setString(18, tillattTerm)
+                    begrepStmt?.setString(19, frarådetTerm)
                 } else {
                     begrepStmt = it.prepareStatement(updateBegrepSQL)
                     begrepStmt?.setInt(1, mapStatusToInt(begrep.status))
@@ -303,7 +313,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
                     begrepStmt?.setString(6, virksomhet.id)
                     begrepStmt?.setString(7, begrep.eksempel)
                     begrepStmt?.setString(8, begrep.fagområde)
-                    begrepStmt?.setString(9, begrep.bruksområde)
+                    begrepStmt?.setString(9, bruksområde)
                     begrepStmt?.setString(10, begrep.omfang?.tekst)
                     begrepStmt?.setString(11, begrep.omfang?.uri)
                     begrepStmt?.setString(12, begrep.kontaktpunkt?.harEpost)
@@ -332,7 +342,9 @@ class SqlStore(val connectionManager: ConnectionManager) {
                         begrepStmt?.setTimestamp(16, null)
                     }
 
-                    begrepStmt?.setString(17, begrep.id)
+                    begrepStmt?.setString(17, tillattTerm)
+                    begrepStmt?.setString(18, frarådetTerm)
+                    begrepStmt?.setString(19, begrep.id)
                     //Delete whatever is in there, then write out
                     deleteURITextForBegrep(begrep.id)
                 }
@@ -426,7 +438,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
             ansvarligVirksomhet = virksomhet
             eksempel = result.getString("eksempel")
             fagområde = result.getString("fagområde")
-            bruksområde = result.getString("bruksområde")
+            bruksområde = result.getString("bruksområde")?.let { s -> s.split(STRING_LIST_DELIMITER).filter{ !it.isNullOrEmpty() } } ?: listOf()
             omfang = URITekst()
             omfang.tekst = result.getString("omfang_tekst")
             omfang.uri = result.getString("omfang_uri")
@@ -444,6 +456,8 @@ class SqlStore(val connectionManager: ConnectionManager) {
                     endringstidspunkt = OffsetDateTime.of(endringsTidspunkt.toLocalDateTime(), ZoneOffset.ofHours(0))
                 }
             }
+            tillattTerm = result.getString("tillatt_term")?.let { s -> s.split(STRING_LIST_DELIMITER).filter{ !it.isNullOrEmpty() } } ?: listOf()
+            frarådetTerm = result.getString("frarådet_term")?.let { s -> s.split(STRING_LIST_DELIMITER).filter{ !it.isNullOrEmpty() } } ?: listOf()
         }
 
         return mappedBegrep
