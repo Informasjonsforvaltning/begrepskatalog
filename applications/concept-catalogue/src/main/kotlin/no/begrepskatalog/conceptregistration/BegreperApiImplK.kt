@@ -32,7 +32,7 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
             val result: MutableList<Begrep> = sqlStore.getBegrepByCompany(orgnumber)
             return ResponseEntity.ok(result)
         } else {
-            return ResponseEntity(HttpStatus.NOT_FOUND)
+            return ResponseEntity.ok(mutableListOf()) //TODO: When the publisher module is up and running, this will most likely be a fatal error
         }
     }
 
