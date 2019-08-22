@@ -253,9 +253,9 @@ class SqlStore(val connectionManager: ConnectionManager) {
                 logger.info("Virksomhet ${storedVirksomhet.id} already stored")
             }
 
-            val bruksområde: String? = begrep.bruksområde?.let { list -> list.joinToString(STRING_LIST_DELIMITER) }
-            val tillattTerm: String? = begrep.tillattTerm?.let { list -> list.joinToString(STRING_LIST_DELIMITER) }
-            val frarådetTerm: String? = begrep.frarådetTerm?.let { list -> list.joinToString(STRING_LIST_DELIMITER) }
+            val bruksområde: String? = begrep.bruksområde?.let { list -> if(list.isNotEmpty()) list.joinToString(STRING_LIST_DELIMITER) else null }
+            val tillattTerm: String? = begrep.tillattTerm?.let { list -> if(list.isNotEmpty()) list.joinToString(STRING_LIST_DELIMITER) else null }
+            val frarådetTerm: String? = begrep.frarådetTerm?.let { list -> if(list.isNotEmpty()) list.joinToString(STRING_LIST_DELIMITER) else null }
 
             try {
                 var begrepStmt : PreparedStatement? = null

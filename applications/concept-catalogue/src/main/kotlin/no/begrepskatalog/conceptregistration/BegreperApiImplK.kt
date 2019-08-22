@@ -114,7 +114,7 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
         if (source.fagområde != null) {
             destination.fagområde = source.fagområde
         }
-        if (source.bruksområde != null) {
+        if (source.bruksområde != null && source.bruksområde.isNotEmpty()) {
             destination.bruksområde = source.bruksområde
         }
         if (source.kontaktpunkt != null) {
@@ -141,10 +141,10 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
             destination.endringslogelement.brukerId = source.endringslogelement.brukerId
             destination.endringslogelement.endringstidspunkt = source.endringslogelement.endringstidspunkt
         }
-        if (source.tillattTerm != null) {
+        if (source.tillattTerm != null && source.tillattTerm.isNotEmpty()) {
             destination.tillattTerm = source.tillattTerm
         }
-        if (source.frarådetTerm != null) {
+        if (source.frarådetTerm != null && source.frarådetTerm.isNotEmpty()) {
             destination.frarådetTerm = source.frarådetTerm
         }
 
