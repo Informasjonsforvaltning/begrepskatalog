@@ -232,4 +232,48 @@ class ConceptRegistrationApplicationTests {
         assertTrue(retrievedBegrep.tillattTerm.isEmpty())
         assertTrue(retrievedBegrep.frarådetTerm.isEmpty())
     }
+
+    @Test
+    fun testEnsureUnsetPropertiesDoNotGetOverwritten() {
+        val bruksområde = listOf("a", "b", "c")
+        val tillattTerm = listOf("d", "e", "f")
+        val frarådetTerm = listOf("g", "h", "i")
+
+        val begrep = createBegrep()
+        begrep.id = null
+        begrep.bruksområde = bruksområde
+        begrep.tillattTerm = tillattTerm
+        begrep.frarådetTerm = frarådetTerm
+
+        var savedBegrep = sqlStore.saveBegrep(begrep)
+        assertNotNull(savedBegrep)
+        assertTrue(sqlStore.begrepExists(begrep))
+
+        savedBegrep!!.bruksområde = null
+
+        savedBegrep = sqlStore.saveBegrep(begrep)
+        assertNotNull(savedBegrep)
+        assertTrue(sqlStore.begrepExists(begrep))
+        assertNull(savedBegrep?.bruksområde)
+        assertArrayEquals(tillattTerm.toTypedArray(), savedBegrep!!.tillattTerm.toTypedArray())
+        assertArrayEquals(frarådetTerm.toTypedArray(), savedBegrep!!.frarådetTerm.toTypedArray())
+
+        savedBegrep!!.tillattTerm = null
+
+        savedBegrep = sqlStore.saveBegrep(begrep)
+        assertNotNull(savedBegrep)
+        assertTrue(sqlStore.begrepExists(begrep))
+        assertNull(savedBegrep?.bruksområde)
+        assertNull(savedBegrep?.tillattTerm)
+        assertArrayEquals(frarådetTerm.toTypedArray(), savedBegrep!!.frarådetTerm.toTypedArray())
+
+        savedBegrep!!.frarådetTerm = null
+
+        savedBegrep = sqlStore.saveBegrep(begrep)
+        assertNotNull(savedBegrep)
+        assertTrue(sqlStore.begrepExists(begrep))
+        assertNull(savedBegrep?.bruksområde)
+        assertNull(savedBegrep?.tillattTerm)
+        assertNull(savedBegrep?.frarådetTerm)
+    }
 }

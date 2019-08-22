@@ -253,9 +253,9 @@ class SqlStore(val connectionManager: ConnectionManager) {
                 logger.info("Virksomhet ${storedVirksomhet.id} already stored")
             }
 
-            val bruksområde: String = begrep.bruksområde?.let { list -> list.joinToString(STRING_LIST_DELIMITER) } ?: ""
-            val tillattTerm: String = begrep.tillattTerm?.let { list -> list.joinToString(STRING_LIST_DELIMITER) } ?: ""
-            val frarådetTerm: String = begrep.frarådetTerm?.let { list -> list.joinToString(STRING_LIST_DELIMITER) } ?: ""
+            val bruksområde: String? = begrep.bruksområde?.let { list -> list.joinToString(STRING_LIST_DELIMITER) }
+            val tillattTerm: String? = begrep.tillattTerm?.let { list -> list.joinToString(STRING_LIST_DELIMITER) }
+            val frarådetTerm: String? = begrep.frarådetTerm?.let { list -> list.joinToString(STRING_LIST_DELIMITER) }
 
             try {
                 var begrepStmt : PreparedStatement? = null
@@ -271,7 +271,6 @@ class SqlStore(val connectionManager: ConnectionManager) {
                     begrepStmt?.setString(8, begrep.eksempel)
                     begrepStmt?.setString(9, begrep.fagområde)
                     begrepStmt?.setString(10, bruksområde)
-
                     begrepStmt?.setString(11, begrep.omfang?.tekst)
                     begrepStmt?.setString(12, begrep.omfang?.uri)
                     begrepStmt?.setString(13, begrep.kontaktpunkt?.harEpost)
