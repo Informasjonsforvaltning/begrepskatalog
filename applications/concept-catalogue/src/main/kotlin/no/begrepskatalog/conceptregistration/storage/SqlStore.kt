@@ -516,7 +516,12 @@ class SqlStore(val connectionManager: ConnectionManager) {
         throw RuntimeException("While mapping statuses, encountered status $statusFromDb , that is not one of (1(UTKAST),2(GODKJENT),3(PUBLISERT))")
     }
 
-    fun mapForholdTilKilde(forholdFromDb: String? ) : Kildebeskrivelse.ForholdTilKildeEnum {
+    fun mapForholdTilKilde(forholdFromDb: String? ) : Kildebeskrivelse.ForholdTilKildeEnum? {
+
+        if (forholdFromDb == null) {
+            return null
+        }
+
         if (forholdFromDb == 1.toString()) {
             return Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT
         }
