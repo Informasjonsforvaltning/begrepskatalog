@@ -25,6 +25,8 @@ public class ConnectionManager {
     public static final String DB_SCHEMA = "conceptregistration";
     static private final Logger logger = LoggerFactory.getLogger(ConnectionManager.class);
 
+    //force build
+
     @Value("${spring.datasource.url}")
     public String jdbcURL;
 
