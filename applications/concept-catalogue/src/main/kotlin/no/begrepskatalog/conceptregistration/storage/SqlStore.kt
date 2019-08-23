@@ -21,9 +21,11 @@ class SqlStore(val connectionManager: ConnectionManager) {
 
     private val STRING_LIST_DELIMITER= "::"
 
-    private val fetchURITextsByConceptURI = "select * from uritext u, conceptregistration_uritexts coupling where u.id = coupling.uritext and coupling.registration =  ? "
+    private val fetchURITextsByConceptURI = "select * from uritext u, conceptregistration_uritexts coupling where u.id = coupling.uritext and coupling.registration = ? "
 
-    private val fetchBegrepByCompanySQL = "select * from conceptregistrations c LEFT JOIN  conceptregistration.status s on c.status = s.id where ansvarlig_virksomhet = ? "
+    private val fetchBegrepByCompanySQLAndStatus = "select * from conceptregistrations c LEFT JOIN  conceptregistration.status s on c.status = s.id where ansvarlig_virksomhet like ? and status = ? "
+
+    private val fetchBegrepByCompanySQL = "select * from conceptregistrations c LEFT JOIN  conceptregistration.status s on c.status = s.id where ansvarlig_virksomhet like ? "
 
     private val fetchBegrepById = "select * from conceptregistrations c where id = ? "
 
@@ -155,23 +157,30 @@ class SqlStore(val connectionManager: ConnectionManager) {
         return null
     }
 
-    fun getBegrepByCompany(orgNumber: String): MutableList<Begrep> {
+    fun getBegrepByCompany(orgNumber: String, status : Status?): MutableList<Begrep> {
         logger.info(connectionManager.toString())
         logger.info("Retrieving concepts for organization $orgNumber.")
         var begrepList = mutableListOf<Begrep>()
 
         connectionManager.getConnection().use {
-            var stmt = it.prepareStatement(fetchBegrepByCompanySQL)
-            stmt.setString(1, orgNumber)
-            var success = stmt.execute()
-
-
             val thisVirksomhet = getVirksomhet(orgNumber)
             if (thisVirksomhet == null) {
                 logger.info("In GetBegrepByCompany: failed to find virksomhet $orgNumber, can thus not find Begrep")
                 return begrepList
             }
             logger.info("Retrieving Virksomhet for organization number $orgNumber. Got $thisVirksomhet")
+
+            var stmt : PreparedStatement
+            if (status != null) {
+                stmt = it.prepareStatement(fetchBegrepByCompanySQLAndStatus)
+                stmt.setString(1, orgNumber)
+                stmt.setInt(2, mapStatusToInt(status))
+                stmt.execute()
+            } else {
+                stmt = it.prepareStatement(fetchBegrepByCompanySQL)
+                stmt.setString(1, orgNumber)
+                stmt.execute()
+            }
 
             var results = stmt.resultSet
             logger.info("Results object : ${results}")
