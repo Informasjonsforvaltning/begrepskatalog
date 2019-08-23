@@ -29,8 +29,7 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
     override fun getBegrep(httpServletRequest: HttpServletRequest?, @PathVariable orgnumber: String?, status: Status?): ResponseEntity<MutableList<Begrep>> {
         logger.info("Get begrep $orgnumber")
         if (orgnumber != null) {
-            val result: MutableList<Begrep> = sqlStore.getBegrepByCompany(orgnumber)
-            return ResponseEntity.ok(result)
+            return ResponseEntity.ok(sqlStore.getBegrepByCompany(orgnumber, status))
         } else {
             return ResponseEntity.ok(mutableListOf()) //TODO: When the publisher module is up and running, this will most likely be a fatal error
         }

@@ -3,6 +3,7 @@ package no.begrepskatalog.conceptregistration
 import no.begrepskatalog.conceptregistration.storage.SqlStore
 import no.begrepskatalog.generated.api.CollectionsApi
 import no.begrepskatalog.generated.model.Begrep
+import no.begrepskatalog.generated.model.Status
 import no.difi.skos_ap_no.concept.builder.CollectionBuilder
 import no.difi.skos_ap_no.concept.builder.ModelBuilder
 import org.apache.jena.rdf.model.Resource
@@ -27,7 +28,7 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
     override fun getCollections(httpServletRequest: HttpServletRequest, publisher: String): ResponseEntity<Any> {
         logger.info("Harvest - request")
 
-        val allPublishedBegrepByCompany = sqlStore.getBegrepByCompany(publisher)
+        val allPublishedBegrepByCompany = sqlStore.getBegrepByCompany(publisher, Status.PUBLISERT)
 
         logger.info("Harvest found ${allPublishedBegrepByCompany.size} Begrep")
 
