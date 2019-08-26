@@ -48,17 +48,16 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
     }
 
     fun appendBegrepToCollection(begrep: Begrep, collectionBuilder: CollectionBuilder): Resource {
-        val sourceReference = if (begrep.kildebeskrivelse != null) begrep.kildebeskrivelse.forholdTilKilde.toString() else ""
         var sourceItself = if (begrep.kildebeskrivelse != null && begrep.kildebeskrivelse.kilde != null && begrep.kildebeskrivelse.kilde.size > 0) begrep.kildebeskrivelse.kilde[0].uri + begrep.kildebeskrivelse.kilde[0].tekst else ""
         val urlForAccessingThisBegrepsRegistration = baseURL + begrep.ansvarligVirksomhet.id + "/" + begrep.id
         return collectionBuilder.conceptBuilder(urlForAccessingThisBegrepsRegistration)
-                .publisher(begrep.ansvarligVirksomhet.id)
+                .publisher(begrep.ansvarligVirksomhet?.id)
                 .definitionBuilder()
                     .text(begrep.definisjon, "nb")
                     .sourcedescriptionBuilder()
                         .sourceBuilder()
                             .label(sourceItself, "nb")
-                            .seeAlso(sourceReference)
+                            .seeAlso(begrep.kildebeskrivelse?.forholdTilKilde?.value ?: "")
                             .build()
                         .build()
                     .audience("allmenheten", "nb")
@@ -77,8 +76,8 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
                 .subject(begrep.fagområde, "nb")
                 .domainOfUse(begrep.bruksområde, "nb")
                 .contactPointBuilder()
-                    .email(begrep.kontaktpunkt.harEpost ?: "")
-                    .telephone(begrep.kontaktpunkt.harTelefon ?: "")
+                    .email(begrep.kontaktpunkt?.harEpost ?: "")
+                    .telephone(begrep.kontaktpunkt?.harTelefon ?: "")
                     .build()
                 .resource
     }
