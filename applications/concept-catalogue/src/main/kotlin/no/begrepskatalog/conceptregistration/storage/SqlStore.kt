@@ -406,29 +406,21 @@ class SqlStore(val connectionManager: ConnectionManager) {
     }
 
     fun mapForholdTilKildeToInt(forholdTilKilde: Kildebeskrivelse.ForholdTilKildeEnum?) : Int {
-        if (forholdTilKilde == Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT) {
-            return 1
+        return when (forholdTilKilde) {
+            Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT -> 1
+            Kildebeskrivelse.ForholdTilKildeEnum.BASERTPAAKILDE -> 2
+            Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE -> 3
+            else -> 1 //TODO: Actually die on this when the data is ok and frontend is ok
         }
-        if (forholdTilKilde == Kildebeskrivelse.ForholdTilKildeEnum.BASERTPAAKILDE) {
-            return 2
-        }
-        if (forholdTilKilde == Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE) {
-            return 3
-        }
-        return 1 //TODO: Actually die on this when the data is ok and frontend is ok
     }
 
     fun mapStatusToInt(status: Status): Int {
-        if (status == Status.UTKAST) {
-            return 1
+
+        return when (status) {
+            Status.UTKAST -> 1
+            Status.GODKJENT -> 2
+            Status.PUBLISERT -> 3
         }
-        if (status == Status.GODKJENT) {
-            return 2
-        }
-        if (status == Status.PUBLISERT) {
-            return 3
-        }
-        throw RuntimeException("Error converting status to db ids, Got ${status} Did not get one of (UTKAST,GODKJENT,PUBLISERT)")
     }
 
     fun mapToBegrep(result: ResultSet, virksomhet: Virksomhet): Begrep {
@@ -504,33 +496,22 @@ class SqlStore(val connectionManager: ConnectionManager) {
 
     fun mapStatus(statusFromDb: String): Status {
 
-        if (statusFromDb == 1.toString()) {
-            return Status.UTKAST
+        return when (statusFromDb) {
+            1.toString() -> Status.UTKAST
+            2.toString() -> Status.GODKJENT
+            3.toString() -> Status.PUBLISERT
+            else -> throw RuntimeException("While mapping statuses, encountered status $statusFromDb , that is not one of (1(UTKAST),2(GODKJENT),3(PUBLISERT))")
         }
-        if (statusFromDb == 2.toString()) {
-            return Status.GODKJENT
-        }
-        if (statusFromDb == 3.toString()) {
-            return Status.PUBLISERT
-        }
-        throw RuntimeException("While mapping statuses, encountered status $statusFromDb , that is not one of (1(UTKAST),2(GODKJENT),3(PUBLISERT))")
     }
 
     fun mapForholdTilKilde(forholdFromDb: String? ) : Kildebeskrivelse.ForholdTilKildeEnum? {
 
-        if (forholdFromDb == null) {
-            return null
+        return when (forholdFromDb) {
+            null -> null
+            1.toString() -> Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT
+            2.toString() -> Kildebeskrivelse.ForholdTilKildeEnum.BASERTPAAKILDE
+            3.toString() -> Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE
+            else -> throw RuntimeException("While mapping ForholdTilKilde, encountered $forholdFromDb , that is not one of (1(EGENDEFINERT),2(BASERTPAAKILDE, 3(SITATFRAKILDE) )))")
         }
-
-        if (forholdFromDb == 1.toString()) {
-            return Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT
-        }
-        if (forholdFromDb == 2.toString()) {
-            return Kildebeskrivelse.ForholdTilKildeEnum.BASERTPAAKILDE
-        }
-        if (forholdFromDb == 3.toString()) {
-            return Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE
-        }
-        throw RuntimeException("While mapping ForholdTilKilde, encountered $forholdFromDb , that is not one of (1(EGENDEFINERT),2(BASERTPAAKILDE, 3(SITATFRAKILDE) )))")
     }
 }
