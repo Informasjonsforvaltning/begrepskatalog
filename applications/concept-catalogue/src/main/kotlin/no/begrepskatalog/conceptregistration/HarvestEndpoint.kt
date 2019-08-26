@@ -3,7 +3,7 @@ package no.begrepskatalog.conceptregistration
 import no.begrepskatalog.conceptregistration.storage.SqlStore
 import no.begrepskatalog.generated.api.CollectionsApi
 import no.begrepskatalog.generated.model.Begrep
-import no.difi.skos_ap_no.concept.builder.CollectionBuilder
+import no.difi.skos_ap_no.concept.builder.Conceptcollection.CollectionBuilder
 import no.difi.skos_ap_no.concept.builder.ModelBuilder
 import org.apache.jena.rdf.model.Resource
 import org.slf4j.LoggerFactory
@@ -55,12 +55,18 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
                 .publisher(begrep.ansvarligVirksomhet.id)
                 .definitionBuilder()
                     .text(begrep.definisjon, "nb")
-                    .sourceBuilder()
-                        .label(sourceItself, "nb")
-                        .seeAlso(sourceReference)
+                    .sourcedescriptionBuilder()
+                        .sourceBuilder()
+                            .label(sourceItself, "nb")
+                            .seeAlso(sourceReference)
+                            .build()
                         .build()
                     .audience("allmenheten", "nb")
                     .scopeNote(begrep.merknad ?: "", "nb")
+                    .scopeBuilder()
+                        .label(begrep.omfang?.tekst ?: "", "nb")
+                        .seeAlso(begrep.omfang?.uri)
+                        .build()
                     .modified(begrep.gyldigFom)
                     .build()
                 .identifier(begrep.id)
