@@ -19,9 +19,13 @@ class SqlStore(val connectionManager: ConnectionManager) {
 
     private val DB_STATUS_PUBLISHED = 3
 
-    private val fetchURITextsByConceptURI = "select * from uritext u, conceptregistration_uritexts coupling where u.id = coupling.uritext and coupling.registration =  ? "
+    private val STRING_LIST_DELIMITER= "::"
 
-    private val fetchBegrepByCompanySQL = "select * from conceptregistrations c LEFT JOIN  conceptregistration.status s on c.status = s.id where ansvarlig_virksomhet = ? "
+    private val fetchURITextsByConceptURI = "select * from uritext u, conceptregistration_uritexts coupling where u.id = coupling.uritext and coupling.registration = ? "
+
+    private val fetchBegrepByCompanySQLAndStatus = "select * from conceptregistrations c LEFT JOIN  conceptregistration.status s on c.status = s.id where ansvarlig_virksomhet like ? and status = ? "
+
+    private val fetchBegrepByCompanySQL = "select * from conceptregistrations c LEFT JOIN  conceptregistration.status s on c.status = s.id where ansvarlig_virksomhet like ? "
 
     private val fetchBegrepById = "select * from conceptregistrations c where id = ? "
 
@@ -40,12 +44,14 @@ class SqlStore(val connectionManager: ConnectionManager) {
     private val addCupling = "insert into conceptregistration_URITexts(registration, URIText) values (?,?)"
 
     private val saveBegrepSQL = "insert into conceptregistrations(id,status,anbefalt_term,definisjon,forhold_til_kilde,merknad, " +
-            " ansvarlig_virksomhet,eksempel,fagområde,bruksområde, omfang_tekst, omfang_uri,kontaktpunkt_harepost, kontaktpunkt_hartelefon,gyldig_fom,endret_av_brukernavn,sist_endret) " +
-            " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+            " ansvarlig_virksomhet,eksempel,fagområde,bruksområde, omfang_tekst, omfang_uri,kontaktpunkt_harepost, kontaktpunkt_hartelefon,gyldig_fom,endret_av_brukernavn,sist_endret," +
+            " tillatt_term, frarådet_term) " +
+            " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 
     private val updateBegrepSQL = "update conceptregistrations" +
             " set status=?,anbefalt_term=?,definisjon=?,forhold_til_kilde=?,merknad=?, " +
-            " ansvarlig_virksomhet=?,eksempel=?,fagområde=?,bruksområde=?, omfang_tekst=?, omfang_uri=?,kontaktpunkt_harepost=?, kontaktpunkt_hartelefon=?,gyldig_fom=?, endret_av_brukernavn=?, sist_endret=? " +
+            " ansvarlig_virksomhet=?,eksempel=?,fagområde=?,bruksområde=?, omfang_tekst=?, omfang_uri=?,kontaktpunkt_harepost=?, kontaktpunkt_hartelefon=?,gyldig_fom=?, endret_av_brukernavn=?, sist_endret=?," +
+            " tillatt_term=?, frarådet_term=?" +
             " where id=?"
 
     private val deleteBegrepSQL = "delete from conceptregistrations where id = ?"
@@ -151,23 +157,30 @@ class SqlStore(val connectionManager: ConnectionManager) {
         return null
     }
 
-    fun getBegrepByCompany(orgNumber: String): MutableList<Begrep> {
+    fun getBegrepByCompany(orgNumber: String, status : Status?): MutableList<Begrep> {
         logger.info(connectionManager.toString())
         logger.info("Retrieving concepts for organization $orgNumber.")
         var begrepList = mutableListOf<Begrep>()
 
         connectionManager.getConnection().use {
-            var stmt = it.prepareStatement(fetchBegrepByCompanySQL)
-            stmt.setString(1, orgNumber)
-            var success = stmt.execute()
-
-
             val thisVirksomhet = getVirksomhet(orgNumber)
             if (thisVirksomhet == null) {
                 logger.info("In GetBegrepByCompany: failed to find virksomhet $orgNumber, can thus not find Begrep")
                 return begrepList
             }
             logger.info("Retrieving Virksomhet for organization number $orgNumber. Got $thisVirksomhet")
+
+            var stmt : PreparedStatement
+            if (status != null) {
+                stmt = it.prepareStatement(fetchBegrepByCompanySQLAndStatus)
+                stmt.setString(1, orgNumber)
+                stmt.setInt(2, mapStatusToInt(status))
+                stmt.execute()
+            } else {
+                stmt = it.prepareStatement(fetchBegrepByCompanySQL)
+                stmt.setString(1, orgNumber)
+                stmt.execute()
+            }
 
             var results = stmt.resultSet
             logger.info("Results object : ${results}")
@@ -249,6 +262,10 @@ class SqlStore(val connectionManager: ConnectionManager) {
                 logger.info("Virksomhet ${storedVirksomhet.id} already stored")
             }
 
+            val bruksområde: String? = begrep.bruksområde?.let { list -> if(list.isNotEmpty()) list.joinToString(STRING_LIST_DELIMITER) else null }
+            val tillattTerm: String? = begrep.tillattTerm?.let { list -> if(list.isNotEmpty()) list.joinToString(STRING_LIST_DELIMITER) else null }
+            val frarådetTerm: String? = begrep.frarådetTerm?.let { list -> if(list.isNotEmpty()) list.joinToString(STRING_LIST_DELIMITER) else null }
+
             try {
                 var begrepStmt : PreparedStatement? = null
                 if (create) {
@@ -262,8 +279,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
                     begrepStmt?.setString(7, virksomhet.id)
                     begrepStmt?.setString(8, begrep.eksempel)
                     begrepStmt?.setString(9, begrep.fagområde)
-                    begrepStmt?.setString(10, begrep.bruksområde)
-
+                    begrepStmt?.setString(10, bruksområde)
                     begrepStmt?.setString(11, begrep.omfang?.tekst)
                     begrepStmt?.setString(12, begrep.omfang?.uri)
                     begrepStmt?.setString(13, begrep.kontaktpunkt?.harEpost)
@@ -293,6 +309,8 @@ class SqlStore(val connectionManager: ConnectionManager) {
                         begrepStmt?.setTimestamp(17, null)
                     }
 
+                    begrepStmt?.setString(18, tillattTerm)
+                    begrepStmt?.setString(19, frarådetTerm)
                 } else {
                     begrepStmt = it.prepareStatement(updateBegrepSQL)
                     begrepStmt?.setInt(1, mapStatusToInt(begrep.status))
@@ -303,7 +321,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
                     begrepStmt?.setString(6, virksomhet.id)
                     begrepStmt?.setString(7, begrep.eksempel)
                     begrepStmt?.setString(8, begrep.fagområde)
-                    begrepStmt?.setString(9, begrep.bruksområde)
+                    begrepStmt?.setString(9, bruksområde)
                     begrepStmt?.setString(10, begrep.omfang?.tekst)
                     begrepStmt?.setString(11, begrep.omfang?.uri)
                     begrepStmt?.setString(12, begrep.kontaktpunkt?.harEpost)
@@ -332,7 +350,9 @@ class SqlStore(val connectionManager: ConnectionManager) {
                         begrepStmt?.setTimestamp(16, null)
                     }
 
-                    begrepStmt?.setString(17, begrep.id)
+                    begrepStmt?.setString(17, tillattTerm)
+                    begrepStmt?.setString(18, frarådetTerm)
+                    begrepStmt?.setString(19, begrep.id)
                     //Delete whatever is in there, then write out
                     deleteURITextForBegrep(begrep.id)
                 }
@@ -386,29 +406,21 @@ class SqlStore(val connectionManager: ConnectionManager) {
     }
 
     fun mapForholdTilKildeToInt(forholdTilKilde: Kildebeskrivelse.ForholdTilKildeEnum?) : Int {
-        if (forholdTilKilde == Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT) {
-            return 1
+        return when (forholdTilKilde) {
+            Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT -> 1
+            Kildebeskrivelse.ForholdTilKildeEnum.BASERTPAAKILDE -> 2
+            Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE -> 3
+            else -> 1 //TODO: Actually die on this when the data is ok and frontend is ok
         }
-        if (forholdTilKilde == Kildebeskrivelse.ForholdTilKildeEnum.BASERTPAAKILDE) {
-            return 2
-        }
-        if (forholdTilKilde == Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE) {
-            return 3
-        }
-        return 1 //TODO: Actually die on this when the data is ok and frontend is ok
     }
 
     fun mapStatusToInt(status: Status): Int {
-        if (status == Status.UTKAST) {
-            return 1
+
+        return when (status) {
+            Status.UTKAST -> 1
+            Status.GODKJENT -> 2
+            Status.PUBLISERT -> 3
         }
-        if (status == Status.GODKJENT) {
-            return 2
-        }
-        if (status == Status.PUBLISERT) {
-            return 3
-        }
-        throw RuntimeException("Error converting status to db ids, Got ${status} Did not get one of (UTKAST,GODKJENT,PUBLISERT)")
     }
 
     fun mapToBegrep(result: ResultSet, virksomhet: Virksomhet): Begrep {
@@ -426,7 +438,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
             ansvarligVirksomhet = virksomhet
             eksempel = result.getString("eksempel")
             fagområde = result.getString("fagområde")
-            bruksområde = result.getString("bruksområde")
+            bruksområde = result.getString("bruksområde")?.let { s -> s.split(STRING_LIST_DELIMITER).filter{ !it.isNullOrEmpty() } } ?: listOf()
             omfang = URITekst()
             omfang.tekst = result.getString("omfang_tekst")
             omfang.uri = result.getString("omfang_uri")
@@ -444,6 +456,8 @@ class SqlStore(val connectionManager: ConnectionManager) {
                     endringstidspunkt = OffsetDateTime.of(endringsTidspunkt.toLocalDateTime(), ZoneOffset.ofHours(0))
                 }
             }
+            tillattTerm = result.getString("tillatt_term")?.let { s -> s.split(STRING_LIST_DELIMITER).filter{ !it.isNullOrEmpty() } } ?: listOf()
+            frarådetTerm = result.getString("frarådet_term")?.let { s -> s.split(STRING_LIST_DELIMITER).filter{ !it.isNullOrEmpty() } } ?: listOf()
         }
 
         return mappedBegrep
@@ -482,28 +496,22 @@ class SqlStore(val connectionManager: ConnectionManager) {
 
     fun mapStatus(statusFromDb: String): Status {
 
-        if (statusFromDb == 1.toString()) {
-            return Status.UTKAST
+        return when (statusFromDb) {
+            1.toString() -> Status.UTKAST
+            2.toString() -> Status.GODKJENT
+            3.toString() -> Status.PUBLISERT
+            else -> throw RuntimeException("While mapping statuses, encountered status $statusFromDb , that is not one of (1(UTKAST),2(GODKJENT),3(PUBLISERT))")
         }
-        if (statusFromDb == 2.toString()) {
-            return Status.GODKJENT
-        }
-        if (statusFromDb == 3.toString()) {
-            return Status.PUBLISERT
-        }
-        throw RuntimeException("While mapping statuses, encountered status $statusFromDb , that is not one of (1(UTKAST),2(GODKJENT),3(PUBLISERT))")
     }
 
-    fun mapForholdTilKilde(forholdFromDb: String? ) : Kildebeskrivelse.ForholdTilKildeEnum {
-        if (forholdFromDb == 1.toString()) {
-            return Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT
+    fun mapForholdTilKilde(forholdFromDb: String? ) : Kildebeskrivelse.ForholdTilKildeEnum? {
+
+        return when (forholdFromDb) {
+            null -> null
+            1.toString() -> Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT
+            2.toString() -> Kildebeskrivelse.ForholdTilKildeEnum.BASERTPAAKILDE
+            3.toString() -> Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE
+            else -> throw RuntimeException("While mapping ForholdTilKilde, encountered $forholdFromDb , that is not one of (1(EGENDEFINERT),2(BASERTPAAKILDE, 3(SITATFRAKILDE) )))")
         }
-        if (forholdFromDb == 2.toString()) {
-            return Kildebeskrivelse.ForholdTilKildeEnum.BASERTPAAKILDE
-        }
-        if (forholdFromDb == 3.toString()) {
-            return Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE
-        }
-        throw RuntimeException("While mapping ForholdTilKilde, encountered $forholdFromDb , that is not one of (1(EGENDEFINERT),2(BASERTPAAKILDE, 3(SITATFRAKILDE) )))")
     }
 }

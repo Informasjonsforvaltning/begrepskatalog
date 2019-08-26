@@ -15,7 +15,7 @@ class BegrepValidationTest {
             anbefaltTerm = "eplesaft"
             id = UUID.randomUUID().toString()
             ansvarligVirksomhet = createTestVirksomhet()
-            bruksområde = "Særavgift/Særavgift - Avgift på alkoholfrie drikkevarer"
+            bruksområde = listOf("Særavgift/Særavgift - Avgift på alkoholfrie drikkevarer")
             definisjon = "saft uten tilsatt sukker som er basert på epler"
             eksempel = "DummyEksempel"
             status = Status.GODKJENT

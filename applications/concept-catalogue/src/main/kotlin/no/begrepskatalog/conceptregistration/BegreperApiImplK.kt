@@ -29,10 +29,9 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
     override fun getBegrep(httpServletRequest: HttpServletRequest?, @PathVariable orgnumber: String?, status: Status?): ResponseEntity<MutableList<Begrep>> {
         logger.info("Get begrep $orgnumber")
         if (orgnumber != null) {
-            val result: MutableList<Begrep> = sqlStore.getBegrepByCompany(orgnumber)
-            return ResponseEntity.ok(result)
+            return ResponseEntity.ok(sqlStore.getBegrepByCompany(orgnumber, status))
         } else {
-            return ResponseEntity(HttpStatus.NOT_FOUND)
+            return ResponseEntity.ok(mutableListOf()) //TODO: When the publisher module is up and running, this will most likely be a fatal error
         }
     }
 
@@ -114,7 +113,7 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
         if (source.fagområde != null) {
             destination.fagområde = source.fagområde
         }
-        if (source.bruksområde != null) {
+        if (source.bruksområde != null && source.bruksområde.isNotEmpty()) {
             destination.bruksområde = source.bruksområde
         }
         if (source.kontaktpunkt != null) {
@@ -140,6 +139,12 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
         if (source.endringslogelement != null) {
             destination.endringslogelement.brukerId = source.endringslogelement.brukerId
             destination.endringslogelement.endringstidspunkt = source.endringslogelement.endringstidspunkt
+        }
+        if (source.tillattTerm != null && source.tillattTerm.isNotEmpty()) {
+            destination.tillattTerm = source.tillattTerm
+        }
+        if (source.frarådetTerm != null && source.frarådetTerm.isNotEmpty()) {
+            destination.frarådetTerm = source.frarådetTerm
         }
 
         return destination
