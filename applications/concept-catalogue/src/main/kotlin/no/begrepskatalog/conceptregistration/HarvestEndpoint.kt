@@ -6,6 +6,7 @@ import no.begrepskatalog.generated.model.Begrep
 import no.begrepskatalog.generated.model.Status
 import no.difi.skos_ap_no.concept.builder.Conceptcollection.CollectionBuilder
 import no.difi.skos_ap_no.concept.builder.ModelBuilder
+import no.difi.skos_ap_no.concept.builder.generic.AudienceType
 import org.apache.jena.rdf.model.Resource
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -61,7 +62,7 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
                             .seeAlso(begrep.kildebeskrivelse?.forholdTilKilde?.value ?: "")
                             .build()
                         .build()
-                    .audience("allmenheten", "nb")
+                    .audience(AudienceType.Audience.Public)
                     .scopeNote(begrep.merknad ?: "", "nb")
                     .scopeBuilder()
                         .label(begrep.omfang?.tekst ?: "", "nb")
