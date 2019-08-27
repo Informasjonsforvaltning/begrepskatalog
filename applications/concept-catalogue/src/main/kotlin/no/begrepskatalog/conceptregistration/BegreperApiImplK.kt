@@ -97,6 +97,9 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
             destination.definisjon = source.definisjon
         }
         if (source.kildebeskrivelse != null) {
+            if (destination.kildebeskrivelse == null) {
+                destination.kildebeskrivelse = Kildebeskrivelse()
+            }
             if (source.kildebeskrivelse.forholdTilKilde!= null) {
                 destination.kildebeskrivelse.forholdTilKilde= source.kildebeskrivelse.forholdTilKilde
             }
