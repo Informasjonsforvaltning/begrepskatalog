@@ -4,8 +4,9 @@ import no.begrepskatalog.conceptregistration.storage.SqlStore
 import no.begrepskatalog.generated.api.CollectionsApi
 import no.begrepskatalog.generated.model.Begrep
 import no.begrepskatalog.generated.model.Status
-import no.difi.skos_ap_no.concept.builder.CollectionBuilder
+import no.difi.skos_ap_no.concept.builder.Conceptcollection.CollectionBuilder
 import no.difi.skos_ap_no.concept.builder.ModelBuilder
+import no.difi.skos_ap_no.concept.builder.generic.AudienceType
 import org.apache.jena.rdf.model.Resource
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -49,19 +50,24 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
     }
 
     fun appendBegrepToCollection(begrep: Begrep, collectionBuilder: CollectionBuilder): Resource {
-        val sourceReference = if (begrep.kildebeskrivelse != null) begrep.kildebeskrivelse.forholdTilKilde.toString() else ""
         var sourceItself = if (begrep.kildebeskrivelse != null && begrep.kildebeskrivelse.kilde != null && begrep.kildebeskrivelse.kilde.size > 0) begrep.kildebeskrivelse.kilde[0].uri + begrep.kildebeskrivelse.kilde[0].tekst else ""
         val urlForAccessingThisBegrepsRegistration = baseURL + begrep.ansvarligVirksomhet.id + "/" + begrep.id
         var builder = collectionBuilder.conceptBuilder(urlForAccessingThisBegrepsRegistration)
                 .publisher(begrep.ansvarligVirksomhet.id)
                 .definitionBuilder()
                     .text(begrep.definisjon, "nb")
-                    .sourceBuilder()
-                        .label(sourceItself, "nb")
-                        .seeAlso(sourceReference)
+                    .sourcedescriptionBuilder()
+                        .sourceBuilder()
+                            .label(sourceItself, "nb")
+                            .seeAlso(begrep.kildebeskrivelse?.forholdTilKilde?.value ?: "")
+                            .build()
                         .build()
-                    .audience("allmenheten", "nb")
+                    .audience(AudienceType.Audience.Public)
                     .scopeNote(begrep.merknad ?: "", "nb")
+                    .scopeBuilder()
+                        .label(begrep.omfang?.tekst ?: "", "nb")
+                        .seeAlso(begrep.omfang?.uri)
+                        .build()
                     .modified(begrep.gyldigFom)
                     .build()
                 .identifier(begrep.id)
@@ -71,18 +77,18 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
                 .example(begrep.eksempel, "nb")
                 .subject(begrep.fagområde, "nb")
                 .contactPointBuilder()
-                    .email(begrep.kontaktpunkt.harEpost ?: "")
-                    .telephone(begrep.kontaktpunkt.harTelefon ?: "")
+                    .email(begrep.kontaktpunkt?.harEpost ?: "")
+                    .telephone(begrep.kontaktpunkt?.harTelefon ?: "")
                     .build()
 
-        begrep.bruksområde.forEach { builder = builder.domainOfUse(it, "nb") }
+        begrep.bruksområde.forEach { bruksområde -> builder = builder.domainOfUse(bruksområde, "nb") }
 
         var altLabelBuilder = builder.altLabelBuilder()
-        begrep.tillattTerm.forEach { altLabelBuilder = altLabelBuilder.label(it, "nb") }
+        begrep.tillattTerm.forEach { tillattTerm -> altLabelBuilder = altLabelBuilder.label(tillattTerm, "nb") }
         builder = altLabelBuilder.build()
 
         var hiddenLabelBuilder = builder.hiddenLabelBuilder()
-        begrep.frarådetTerm.forEach { hiddenLabelBuilder = hiddenLabelBuilder.label(it, "nb") }
+        begrep.frarådetTerm.forEach { frarådetTerm -> hiddenLabelBuilder = hiddenLabelBuilder.label(frarådetTerm, "nb") }
         builder = hiddenLabelBuilder.build()
 
         return builder.resource
