@@ -266,6 +266,8 @@ class SqlStore(val connectionManager: ConnectionManager) {
             val tillattTerm: String? = begrep.tillattTerm?.let { list -> if(list.isNotEmpty()) list.joinToString(STRING_LIST_DELIMITER) else null }
             val frarådetTerm: String? = begrep.frarådetTerm?.let { list -> if(list.isNotEmpty()) list.joinToString(STRING_LIST_DELIMITER) else null }
 
+            val forholdTilKilde =  mapForholdTilKildeToInt(begrep.kildebeskrivelse?.forholdTilKilde)
+
             try {
                 var begrepStmt : PreparedStatement? = null
                 if (create) {
@@ -274,7 +276,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
                     begrepStmt?.setInt(2, mapStatusToInt(begrep.status))
                     begrepStmt?.setString(3, begrep.anbefaltTerm)
                     begrepStmt?.setString(4, begrep.definisjon)
-                    begrepStmt?.setInt(5, mapForholdTilKildeToInt(begrep.kildebeskrivelse?.forholdTilKilde))
+                    begrepStmt?.setInt(5, forholdTilKilde)
                     begrepStmt?.setString(6, begrep.merknad)
                     begrepStmt?.setString(7, virksomhet.id)
                     begrepStmt?.setString(8, begrep.eksempel)
@@ -316,7 +318,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
                     begrepStmt?.setInt(1, mapStatusToInt(begrep.status))
                     begrepStmt?.setString(2, begrep.anbefaltTerm)
                     begrepStmt?.setString(3, begrep.definisjon)
-                    begrepStmt?.setInt(4, mapForholdTilKildeToInt(begrep.kildebeskrivelse?.forholdTilKilde))
+                    begrepStmt?.setInt(4, forholdTilKilde)
                     begrepStmt?.setString(5, begrep.merknad)
                     begrepStmt?.setString(6, virksomhet.id)
                     begrepStmt?.setString(7, begrep.eksempel)
@@ -410,12 +412,11 @@ class SqlStore(val connectionManager: ConnectionManager) {
             Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT -> 1
             Kildebeskrivelse.ForholdTilKildeEnum.BASERTPAAKILDE -> 2
             Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE -> 3
-            else -> 1 //TODO: Actually die on this when the data is ok and frontend is ok
+            else -> 0
         }
     }
 
     fun mapStatusToInt(status: Status): Int {
-
         return when (status) {
             Status.UTKAST -> 1
             Status.GODKJENT -> 2
@@ -430,9 +431,12 @@ class SqlStore(val connectionManager: ConnectionManager) {
             status = mapStatus(result.getString("status"))
             anbefaltTerm = result.getString("anbefalt_term")
             definisjon = result.getString("definisjon")
-            kildebeskrivelse = Kildebeskrivelse().apply {
-                forholdTilKilde = mapForholdTilKilde(result.getString("forhold_til_kilde"))
-                kilde = getSources(id)
+            kildebeskrivelse = when (result.getInt("forhold_til_kilde")) {
+                0 -> null
+                else -> Kildebeskrivelse().apply {
+                    forholdTilKilde = mapForholdTilKilde(result.getInt("forhold_til_kilde"))
+                    kilde = getSources(id)
+                }
             }
             merknad = result.getString("merknad")
             ansvarligVirksomhet = virksomhet
@@ -504,13 +508,12 @@ class SqlStore(val connectionManager: ConnectionManager) {
         }
     }
 
-    fun mapForholdTilKilde(forholdFromDb: String? ) : Kildebeskrivelse.ForholdTilKildeEnum? {
-
+    fun mapForholdTilKilde(forholdFromDb: Int?) : Kildebeskrivelse.ForholdTilKildeEnum? {
         return when (forholdFromDb) {
-            null -> null
-            1.toString() -> Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT
-            2.toString() -> Kildebeskrivelse.ForholdTilKildeEnum.BASERTPAAKILDE
-            3.toString() -> Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE
+            null, 0 -> null
+            1 -> Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT
+            2 -> Kildebeskrivelse.ForholdTilKildeEnum.BASERTPAAKILDE
+            3 -> Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE
             else -> throw RuntimeException("While mapping ForholdTilKilde, encountered $forholdFromDb , that is not one of (1(EGENDEFINERT),2(BASERTPAAKILDE, 3(SITATFRAKILDE) )))")
         }
     }

@@ -2,6 +2,7 @@ package no.begrepskatalog.conceptregistration
 
 import no.begrepskatalog.conceptregistration.storage.SqlStore
 import no.begrepskatalog.generated.model.Begrep
+import no.begrepskatalog.generated.model.Kildebeskrivelse
 import no.begrepskatalog.generated.model.Status
 import no.begrepskatalog.generated.model.Virksomhet
 import org.junit.Assert.*
@@ -275,5 +276,47 @@ class ConceptRegistrationApplicationTests {
         assertNull(savedBegrep?.bruksområde)
         assertNull(savedBegrep?.tillattTerm)
         assertNull(savedBegrep?.frarådetTerm)
+    }
+
+    @Test
+    fun testEnsureKildebeskrivelseCanBeNull() {
+        val begrep = createBegrep()
+        begrep.id = null
+
+        var savedBegrep = sqlStore.saveBegrep(begrep)
+        assertNotNull(savedBegrep)
+        assertTrue(sqlStore.begrepExists(begrep))
+
+        val retrievedBegrep = sqlStore.getBegrepById(savedBegrep!!.id)
+        assertNotNull(retrievedBegrep)
+        assertNull(retrievedBegrep?.kildebeskrivelse)
+    }
+
+    @Test
+    fun testEnsureKildebeskrivelseIsNotNullWhenSet() {
+        val begrep = createBegrep()
+        begrep.id = null
+
+        var savedBegrep = sqlStore.saveBegrep(begrep)
+        assertNotNull(savedBegrep)
+        assertTrue(sqlStore.begrepExists(begrep))
+
+        var retrievedBegrep = sqlStore.getBegrepById(savedBegrep!!.id)
+        assertNotNull(retrievedBegrep)
+        assertNull(retrievedBegrep?.kildebeskrivelse)
+
+        retrievedBegrep!!.kildebeskrivelse = Kildebeskrivelse().apply {
+            forholdTilKilde = Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT
+            kilde = emptyList()
+        }
+
+        savedBegrep = sqlStore.saveBegrep(retrievedBegrep)
+        assertNotNull(savedBegrep)
+        assertTrue(sqlStore.begrepExists(begrep))
+
+        retrievedBegrep = sqlStore.getBegrepById(savedBegrep!!.id)
+        assertNotNull(retrievedBegrep)
+        assertNotNull(retrievedBegrep!!.kildebeskrivelse)
+        assertEquals(Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT, retrievedBegrep.kildebeskrivelse.forholdTilKilde)
     }
 }
