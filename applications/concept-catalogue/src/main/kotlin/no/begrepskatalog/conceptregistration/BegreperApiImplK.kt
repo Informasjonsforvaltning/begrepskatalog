@@ -120,6 +120,8 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
             if (source.kildebeskrivelse.kilde!= null ) {
                 destination.kildebeskrivelse.kilde = source.kildebeskrivelse.kilde
             }
+        } else {
+            destination.kildebeskrivelse = null
         }
         if (source.merknad != null) {
             destination.merknad = source.merknad
