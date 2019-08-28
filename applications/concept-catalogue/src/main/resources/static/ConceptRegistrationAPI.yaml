@@ -127,7 +127,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Begrep'
+              type: array
+              items:
+                $ref: '#/components/schemas/Patch'
     delete:
       tags:
         - begrepskatalog
@@ -263,3 +265,12 @@ components:
         endringstidspunkt:
           type: string
           format: date-time
+    Patch:
+      type: object
+      properties:
+        op:
+          type: string
+        path:
+          type: string
+        value:
+          type: object
