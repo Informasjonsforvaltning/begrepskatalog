@@ -127,9 +127,7 @@ paths:
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/Patch'
+              $ref: '#/components/schemas/JsonPatch'
     delete:
       tags:
         - begrepskatalog
@@ -265,12 +263,34 @@ components:
         endringstidspunkt:
           type: string
           format: date-time
-    Patch:
+    JsonPatch:
+      description: 'A JSON Schema describing a JSON Patch (https://tools.ietf.org/html/rfc6902)'
+      type: array
+      items:
+        $ref: '#/components/schemas/JsonPatchOperation'
+    JsonPatchOperation:
       type: object
+      description: 'A JSON patch document as defined by RFC 6902'
+      required:
+        - op
+        - path
       properties:
         op:
           type: string
+          description: 'The operation to be performed'
+          enum:
+            - add
+            - remove
+            - replace
+            - move
+            - copy
+            - test
         path:
           type: string
+          description: 'A JSON pointer to the property being affected'
         value:
           type: object
+          description: 'The value to add, replace or test.'
+        from:
+          description: 'A JSON Pointer path pointing to the location to move/copy from.'
+          type: string

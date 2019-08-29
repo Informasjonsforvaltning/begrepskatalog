@@ -2,9 +2,13 @@ package no.begrepskatalog.conceptregistration
 
 import io.swagger.annotations.ApiParam
 import no.begrepskatalog.conceptregistration.storage.SqlStore
+import no.begrepskatalog.conceptregistration.utils.patchBegrep
 import no.begrepskatalog.conceptregistration.validation.isValidBegrep
 import no.begrepskatalog.generated.api.BegreperApi
-import no.begrepskatalog.generated.model.*
+import no.begrepskatalog.generated.model.Begrep
+import no.begrepskatalog.generated.model.Endringslogelement
+import no.begrepskatalog.generated.model.JsonPatchOperation
+import no.begrepskatalog.generated.model.Status
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
@@ -14,6 +18,7 @@ import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import javax.json.JsonException
 import java.time.OffsetDateTime
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
@@ -55,16 +60,17 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
                 }
     }
 
-    override fun setBegrepById(httpServletRequest: HttpServletRequest?, id: String?, begrep: Begrep?, validate: Boolean?): ResponseEntity<Begrep> {
+    override fun setBegrepById(httpServletRequest: HttpServletRequest?, id: String?, jsonPatchOperations: List<JsonPatchOperation>?, validate: Boolean?): ResponseEntity<Begrep> {
         if (id == null) {
             throw RuntimeException("Attempt to PATCH begrep with no id path variable given")
         }
-        if (begrep == null) {
-            throw RuntimeException("Attempt to PATCH begrep with no begrep data given. Id provided was $id")
+
+        if (jsonPatchOperations == null) {
+            throw RuntimeException("Attempt to PATCH begrep with no changes provided. Id provided was $id")
         }
 
         if (!sqlStore.begrepExists(id)) {
-            throw RuntimeException("Attempt to PUT begrep that does not already exist. Begrep id ${begrep.id}")
+            throw RuntimeException("Attempt to PUT begrep that does not already exist. Begrep id $id")
         }
         //Get the begrep, and just update
         var storedBegrep = sqlStore.getBegrepById(id)
@@ -73,100 +79,26 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
             throw java.lang.RuntimeException("Stored begrep with id $id was null. This should not happen")
         }
 
-        val updatedBegrep = updateBegrep(begrep, storedBegrep)
-
-        updatedBegrep.updateLastChangedAndByWhom()
-
-        if (updatedBegrep.status == Status.UTKAST) {
-            sqlStore.saveBegrep(updatedBegrep)
-            return ResponseEntity.ok(updatedBegrep)
-        } else {
-            if (isValidBegrep(updatedBegrep)) {
-                sqlStore.saveBegrep(updatedBegrep)
-                logger.info("Begrep $updatedBegrep.id has passed validation for non draft begrep and has been saved ")
-                return ResponseEntity.ok(updatedBegrep)
+        var patchedBegrep: Begrep?
+        try {
+            patchedBegrep = patchBegrep(storedBegrep, jsonPatchOperations)
+        } catch (exception: Exception) {
+            when (exception) {
+                is JsonException, is IllegalArgumentException -> throw RuntimeException("Invalid patch operation. Begrep id $id")
+                else -> throw exception
             }
         }
-        return ResponseEntity(HttpStatus.CONFLICT)
-    }
 
-    private fun Begrep.updateLastChangedAndByWhom() {
-        if (endringslogelement == null) {
-            endringslogelement = Endringslogelement()
-        }
-        endringslogelement.apply {
-            endringstidspunkt = OffsetDateTime.now()
-            brukerId = "todo" //TODO: When auth is ready read username from auth context
-        }
-    }
+        patchedBegrep.updateLastChangedAndByWhom()
 
-    fun updateBegrep(source: Begrep, destination: Begrep): Begrep {
-        if (source.status != null) {
-            destination.status = source.status
-        }
-        if (source.anbefaltTerm != null) {
-            destination.anbefaltTerm = source.anbefaltTerm
-        }
-        if (source.definisjon != null) {
-            destination.definisjon = source.definisjon
-        }
-        if (source.kildebeskrivelse != null) {
-            if (destination.kildebeskrivelse == null) {
-                destination.kildebeskrivelse = Kildebeskrivelse()
-            }
-            if (source.kildebeskrivelse.forholdTilKilde!= null) {
-                destination.kildebeskrivelse.forholdTilKilde= source.kildebeskrivelse.forholdTilKilde
-            }
-            if (source.kildebeskrivelse.kilde!= null ) {
-                destination.kildebeskrivelse.kilde = source.kildebeskrivelse.kilde
-            }
-        } else {
-            destination.kildebeskrivelse = null
-        }
-        if (source.merknad != null) {
-            destination.merknad = source.merknad
-        }
-        if (source.eksempel != null) {
-            destination.eksempel = source.eksempel
-        }
-        if (source.fagområde != null) {
-            destination.fagområde = source.fagområde
-        }
-        if (source.bruksområde != null && source.bruksområde.isNotEmpty()) {
-            destination.bruksområde = source.bruksområde
-        }
-        if (source.kontaktpunkt != null) {
-            if (source.kontaktpunkt?.harEpost != null)
-                destination.kontaktpunkt.harEpost = source.kontaktpunkt?.harEpost
-
-            if (source.kontaktpunkt?.harTelefon != null)
-                destination.kontaktpunkt.harTelefon = source.kontaktpunkt?.harTelefon
-        }
-        if (source.omfang != null) {
-            if (source.omfang?.tekst != null)
-                destination.omfang.tekst = source.omfang?.tekst
-            if (source.omfang?.uri != null)
-                destination.omfang.uri = source.omfang?.uri
-        }
-        if (source.gyldigFom != null) {
-            destination.gyldigFom = source.gyldigFom
+        if (patchedBegrep.status != Status.UTKAST && !isValidBegrep(patchedBegrep)) {
+            logger.info("Begrep $patchedBegrep.id has not passed validation for non draft begrep and has not been saved ")
+            return ResponseEntity(HttpStatus.CONFLICT)
         }
 
-        if (destination.endringslogelement == null) {
-            destination.endringslogelement = Endringslogelement()
-        }
-        if (source.endringslogelement != null) {
-            destination.endringslogelement.brukerId = source.endringslogelement.brukerId
-            destination.endringslogelement.endringstidspunkt = source.endringslogelement.endringstidspunkt
-        }
-        if (source.tillattTerm != null && source.tillattTerm.isNotEmpty()) {
-            destination.tillattTerm = source.tillattTerm
-        }
-        if (source.frarådetTerm != null && source.frarådetTerm.isNotEmpty()) {
-            destination.frarådetTerm = source.frarådetTerm
-        }
+        sqlStore.saveBegrep(patchedBegrep)
 
-        return destination
+        return ResponseEntity.ok(patchedBegrep)
     }
 
     override fun getBegrepById(httpServletRequest: HttpServletRequest, @ApiParam(value = "id", required = true) @PathVariable("id") id: String): ResponseEntity<Begrep> {
@@ -176,6 +108,16 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
             ResponseEntity.ok(begrep)
         } else {
             ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+    }
+
+    private fun Begrep.updateLastChangedAndByWhom() {
+        if (endringslogelement == null) {
+            endringslogelement = Endringslogelement()
+        }
+        endringslogelement.apply {
+            endringstidspunkt = OffsetDateTime.now()
+            brukerId = "todo" //TODO: When auth is ready read username from auth context
         }
     }
 
