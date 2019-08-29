@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import java.time.OffsetDateTime
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -38,6 +39,7 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
     override fun createBegrep(httpServletRequest: HttpServletRequest, @ApiParam(value = "", required = true) @Valid @RequestBody begrep: Begrep): ResponseEntity<Void> {
 
         begrep.id = null //We are the authority that provides ids
+        begrep.updateLastChangedAndByWhom()
 
         return sqlStore.saveBegrep(begrep)
                 ?.let {
@@ -73,6 +75,8 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
 
         val updatedBegrep = updateBegrep(begrep, storedBegrep)
 
+        updatedBegrep.updateLastChangedAndByWhom()
+
         if (updatedBegrep.status == Status.UTKAST) {
             sqlStore.saveBegrep(updatedBegrep)
             return ResponseEntity.ok(updatedBegrep)
@@ -84,6 +88,16 @@ class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
             }
         }
         return ResponseEntity(HttpStatus.CONFLICT)
+    }
+
+    private fun Begrep.updateLastChangedAndByWhom() {
+        if (endringslogelement == null) {
+            endringslogelement = Endringslogelement()
+        }
+        endringslogelement.apply {
+            endringstidspunkt = OffsetDateTime.now()
+            brukerId = "todo" //TODO: When auth is ready read username from auth context
+        }
     }
 
     fun updateBegrep(source: Begrep, destination: Begrep): Begrep {
