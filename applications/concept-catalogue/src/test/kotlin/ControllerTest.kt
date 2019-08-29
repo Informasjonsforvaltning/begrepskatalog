@@ -2,6 +2,7 @@ package no.begrepskatalog.conceptregistration
 
 import com.nhaarman.mockitokotlin2.*
 import no.begrepskatalog.conceptregistration.storage.SqlStore
+import no.begrepskatalog.conceptregistration.utils.patchBegrep
 import no.begrepskatalog.generated.model.*
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -29,6 +30,7 @@ class ControllerTest {
 
     }
 
+    @Ignore // TODO: there is no functionality for on-demand validation
     @Test(expected = RuntimeException::class)
     fun test_validations_begrep_does_not_exist() {
         val sqlStoreMock: SqlStore = prepareSqlStoreMock()
@@ -37,9 +39,10 @@ class ControllerTest {
 
         val httpServletRequestMock: HttpServletRequest = mock()
         val begreperApiImplK = BegreperApiImplK(sqlStoreMock)
-        val retValue = begreperApiImplK.setBegrepById(httpServletRequestMock, "esf3", emptyBegrep, true)
+        val retValue = begreperApiImplK.setBegrepById(httpServletRequestMock, "esf3", listOf(), true)
     }
 
+    @Ignore // TODO: there is no functionality for on-demand validation
     @Test(expected = RuntimeException::class)
     fun test_validations_begrep_has_not_ansvarligVirksomhet() {
         val sqlStoreMock: SqlStore = prepareSqlStoreMock()
@@ -49,7 +52,7 @@ class ControllerTest {
 
         val httpServletRequestMock: HttpServletRequest = mock()
         val begreperApiImplK = BegreperApiImplK(sqlStoreMock)
-        val retValue = begreperApiImplK.setBegrepById(httpServletRequestMock, "esf3", someBegrep, true)
+        val retValue = begreperApiImplK.setBegrepById(httpServletRequestMock, "esf3", listOf(), true)
     }
 
     @Test
@@ -65,29 +68,26 @@ class ControllerTest {
     }
 
     @Test
-    fun test_update_begrep() {
-        val sqlStoreMock: SqlStore = prepareSqlStoreMock()
-        val begreperApiImplK = BegreperApiImplK(sqlStoreMock)
+    fun test_patch_begrep() {
         val source = makeDataFilledBegrepA()
-        val sourceToTestAgainst = makeDataFilledBegrepA()
-        val destination = makeDataFilledBegrepB()
+        val sourceToTestAgainst = makeDataFilledBegrepB()
 
-        val updatedBegrep = begreperApiImplK.updateBegrep(source, destination)
+        val patchedBegrep = patchBegrep(source, createChanges())
 
         //verify that destination has all values ending in A (so we know that they are copied over)
-        assert(updatedBegrep.status == sourceToTestAgainst.status)
-        assert(updatedBegrep.definisjon == sourceToTestAgainst.definisjon)
-        assert(updatedBegrep.anbefaltTerm == sourceToTestAgainst.anbefaltTerm)
-        assert(updatedBegrep.definisjon == sourceToTestAgainst.definisjon)
-        assert(updatedBegrep.kildebeskrivelse.forholdTilKilde == sourceToTestAgainst.kildebeskrivelse.forholdTilKilde)
-        assert(updatedBegrep.kildebeskrivelse.kilde.size == sourceToTestAgainst.kildebeskrivelse.kilde.size)
-        assert(updatedBegrep.merknad == sourceToTestAgainst.merknad)
-        assert(updatedBegrep.fagområde == sourceToTestAgainst.fagområde)
-        assert(updatedBegrep.bruksområde == sourceToTestAgainst.bruksområde)
-        assert(updatedBegrep.kontaktpunkt.harTelefon == sourceToTestAgainst.kontaktpunkt.harTelefon)
-        assert(updatedBegrep.kontaktpunkt.harEpost == sourceToTestAgainst.kontaktpunkt.harEpost)
-        assert(updatedBegrep.omfang.tekst == sourceToTestAgainst.omfang.tekst)
-        assert(updatedBegrep.omfang.uri == sourceToTestAgainst.omfang.uri)
+        assert(patchedBegrep.status == sourceToTestAgainst.status)
+        assert(patchedBegrep.definisjon == sourceToTestAgainst.definisjon)
+        assert(patchedBegrep.anbefaltTerm == sourceToTestAgainst.anbefaltTerm)
+        assert(patchedBegrep.definisjon == sourceToTestAgainst.definisjon)
+        assert(patchedBegrep.kildebeskrivelse.forholdTilKilde == sourceToTestAgainst.kildebeskrivelse.forholdTilKilde)
+        assert(patchedBegrep.kildebeskrivelse.kilde.size == sourceToTestAgainst.kildebeskrivelse.kilde.size)
+        assert(patchedBegrep.merknad == sourceToTestAgainst.merknad)
+        assert(patchedBegrep.fagområde == sourceToTestAgainst.fagområde)
+        assert(patchedBegrep.bruksområde == sourceToTestAgainst.bruksområde)
+        assert(patchedBegrep.kontaktpunkt.harTelefon == sourceToTestAgainst.kontaktpunkt.harTelefon)
+        assert(patchedBegrep.kontaktpunkt.harEpost == sourceToTestAgainst.kontaktpunkt.harEpost)
+        assert(patchedBegrep.omfang.tekst == sourceToTestAgainst.omfang.tekst)
+        assert(patchedBegrep.omfang.uri == sourceToTestAgainst.omfang.uri)
     }
 
 
@@ -150,6 +150,96 @@ class ControllerTest {
                 endringslogelement.brukerId = "brukerIdB"
                 endringslogelement.endringstidspunkt = OffsetDateTime.now().plusMonths(1)
             }
+
+    fun createChanges(): List<JsonPatchOperation> {
+        return listOf(
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/definisjon"
+                    value = "testbegrepB"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/anbefaltTerm"
+                    value = "fødestedB"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/definisjon"
+                    value = "er geografisk navn på hvor i fødekommunen eller fødelandet personen er født.B"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/kildebeskrivelse/forholdTilKilde"
+                    value = Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/kildebeskrivelse/kilde/0/tekst"
+                    value = "skatteetatenB"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/kildebeskrivelse/kilde/0/uri"
+                    value = "www.skatteetaten.noB"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/merknad"
+                    value = "testbegrepB"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/eksempel"
+                    value = "bergenB"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/fagområde"
+                    value = "fødeB"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/bruksområde/0"
+                    value = "medisinB"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/omfang/tekst"
+                    value = "sometextB"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/omfang/uri"
+                    value = "http://someuri.comB"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/kontaktpunkt/harEpost"
+                    value = "somebody@somewhere.comB"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/kontaktpunkt/harTelefon"
+                    value = "55555555B"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/gyldigFom"
+                    value = LocalDate.now().plusMonths(1).toString()
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/endringslogelement/brukerId"
+                    value = "brukerIdB"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/endringslogelement/endringstidspunkt"
+                    value = OffsetDateTime.now().plusMonths(1).toString()
+                }
+        )
+    }
 
     private fun omfangA(): URITekst {
         val omf = URITekst().apply {

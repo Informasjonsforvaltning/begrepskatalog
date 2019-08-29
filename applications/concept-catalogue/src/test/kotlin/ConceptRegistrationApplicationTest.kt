@@ -1,10 +1,8 @@
 package no.begrepskatalog.conceptregistration
 
 import no.begrepskatalog.conceptregistration.storage.SqlStore
-import no.begrepskatalog.generated.model.Begrep
-import no.begrepskatalog.generated.model.Kildebeskrivelse
-import no.begrepskatalog.generated.model.Status
-import no.begrepskatalog.generated.model.Virksomhet
+import no.begrepskatalog.conceptregistration.utils.patchBegrep
+import no.begrepskatalog.generated.model.*
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -318,5 +316,69 @@ class ConceptRegistrationApplicationTests {
         assertNotNull(retrievedBegrep)
         assertNotNull(retrievedBegrep!!.kildebeskrivelse)
         assertEquals(Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT, retrievedBegrep.kildebeskrivelse.forholdTilKilde)
+    }
+
+    @Test
+    fun testBegrepPatchWorks() {
+        val begrep = createBegrep()
+
+        val changes = listOf(
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/anbefaltTerm"
+                    value = "anbefaltTerm::patched"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.ADD
+                    path = "/merknad"
+                    value = "merknad::patched"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/definisjon"
+                    value = "definisjon::patched"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/bruksområde"
+                    value = listOf<Any>()
+                }
+        )
+
+        val patchedBegrep = patchBegrep(begrep, changes)
+
+        assertEquals("anbefaltTerm::patched", patchedBegrep.anbefaltTerm)
+        assertEquals("merknad::patched", patchedBegrep.merknad)
+        assertEquals("definisjon::patched", patchedBegrep.definisjon)
+        assertTrue(patchedBegrep.bruksområde.isEmpty())
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testBegrepPatchThrowsExceptionOnInvalidOperation() {
+        val begrep = createBegrep()
+
+        val changes = listOf(
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.REPLACE
+                    path = "/anbefaltTerm"
+                    value = "anbefaltTerm::patched"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.ADD
+                    path = "/merknad"
+                    value = "merknad::patched"
+                },
+                JsonPatchOperation().apply {
+                    op = JsonPatchOperation.OpEnum.valueOf("dosome")
+                    path = "/definisjon"
+                    value = "definisjon::patched"
+                }
+        )
+
+        val patchedBegrep = patchBegrep(begrep, changes)
+
+        assertEquals("anbefaltTerm::patched", patchedBegrep.anbefaltTerm)
+        assertEquals("merknad::patched", patchedBegrep.merknad)
+        assertEquals("definisjon::patched", patchedBegrep.definisjon)
     }
 }
