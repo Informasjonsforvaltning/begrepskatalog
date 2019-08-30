@@ -10,5 +10,8 @@ application:
 
 spring:
   profiles: develop,unit-integration
+  datasource:
+    username: postgres
+    password: password
 server:
-  port: 8101
+  port: 8201
