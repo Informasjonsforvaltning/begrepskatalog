@@ -8,6 +8,7 @@ import no.begrepskatalog.conceptregistration.storage.SqlStore
 import no.begrepskatalog.generated.model.*
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Ignore
 import org.junit.Test
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -15,7 +16,7 @@ import javax.servlet.http.HttpServletRequest
 
 
 class ControllerTest {
-
+    @Ignore
     @Test
     fun test_generation_of_urls_for_new_begrep() {
         val sqlStoreMock: SqlStore = prepareSqlStoreMock()
@@ -198,7 +199,7 @@ class ControllerTest {
     private fun prepareSqlStoreMock(): SqlStore {
         val sqlStoreMock: SqlStore = mock {
             on {
-                saveBegrep(Begrep())
+                savgit steBegrep(Begrep())
             } doReturn makeBegrep()
         }
         whenever(sqlStoreMock.begrepExists("dummyId")).thenReturn(true)
