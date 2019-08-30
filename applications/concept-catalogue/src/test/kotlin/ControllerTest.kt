@@ -1,9 +1,6 @@
 package no.begrepskatalog.conceptregistration
 
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.whenever
+import com.nhaarman.mockitokotlin2.*
 import no.begrepskatalog.conceptregistration.storage.SqlStore
 import no.begrepskatalog.generated.model.*
 import org.junit.Assert.assertEquals
@@ -16,7 +13,6 @@ import javax.servlet.http.HttpServletRequest
 
 
 class ControllerTest {
-    @Ignore
     @Test
     fun test_generation_of_urls_for_new_begrep() {
         val sqlStoreMock: SqlStore = prepareSqlStoreMock()
@@ -29,7 +25,7 @@ class ControllerTest {
         val retValue = begreperApiImplK.createBegrep(httpServletRequestMock, begrep)
         assertNotNull(retValue)
         assertNotNull(retValue.headers)
-        assertEquals(retValue.headers.get("Location")?.get(0), begreperApiImplK.baseURL + makeBegrep().ansvarligVirksomhet.id + "/" + makeBegrep().id)
+        assertEquals( begreperApiImplK.baseURL + makeBegrep().ansvarligVirksomhet.id + "/" + makeBegrep().id, retValue.headers.get("Location")?.get(0))
 
     }
 
@@ -197,13 +193,11 @@ class ControllerTest {
             }
 
     private fun prepareSqlStoreMock(): SqlStore {
-        val sqlStoreMock: SqlStore = mock {
-            on {
-                savgit steBegrep(Begrep())
-            } doReturn makeBegrep()
-        }
+        val sqlStoreMock: SqlStore = mock {}
+
         whenever(sqlStoreMock.begrepExists("dummyId")).thenReturn(true)
         whenever(sqlStoreMock.begrepExists("NonExistingId")).thenReturn(false)
+        whenever(sqlStoreMock.saveBegrep(any())).thenReturn(makeBegrep())
 
         return sqlStoreMock
     }
