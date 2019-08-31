@@ -4,8 +4,14 @@ spring:
     username: ${FDK_SQL_USERNAME}
     password: ${FDK_SQL_PASSWORD}
 application:
+  # todo In default section we have prod conf. this looks like dev value here
   baseURL: https://registrering-begrep.ut1.fellesdatakatalog.brreg.no/
 
+security:
+  oauth2:
+    resource:
+      id: concept-catalogue
+      jwk.key-set-uri: http://sso:8084/auth/realms/fdk/protocol/openid-connect/certs
 ---
 
 spring:
@@ -15,3 +21,8 @@ spring:
     password: password
 server:
   port: 8201
+
+security:
+  oauth2:
+    resource:
+      jwk.key-set-uri: http://localhost:8084/auth/realms/fdk/protocol/openid-connect/certs
