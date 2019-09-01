@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -26,7 +25,6 @@ import javax.validation.Valid
 private val logger = LoggerFactory.getLogger(BegreperApiImplK::class.java)
 
 @RestController
-@CrossOrigin(value = "*")
 class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
 
     @Value("\${application.baseURL}")
