@@ -47,7 +47,7 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
         begrep.updateLastChangedAndByWhom()
 
         if(!fdkPermissions.hasPermission( begrep?.ansvarligVirksomhet?.id, "publisher", "admin")) {
-            return ResponseEntity<Void>(HttpStatus.FORBIDDEN)
+            return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
         return sqlStore.saveBegrep(begrep)
@@ -84,7 +84,7 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
         var storedBegrep = sqlStore.getBegrepById(id)
 
         if (storedBegrep == null) {
-            throw java.lang.RuntimeException("Stored begrep with id $id was null. This should not happen")
+            throw java.lang.RuntimeException("Attempt to PATCH begrep with id $id, that does not exist")
         }
 
         var patchedBegrep: Begrep?
