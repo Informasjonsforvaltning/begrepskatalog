@@ -110,6 +110,11 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
     }
 
     override fun getBegrepById(httpServletRequest: HttpServletRequest, @ApiParam(value = "id", required = true) @PathVariable("id") id: String): ResponseEntity<Begrep> {
+
+        if(!fdkPermissions.hasPermission( id, "publisher", "admin")) {
+            return ResponseEntity(HttpStatus.FORBIDDEN)
+        }
+
         val begrep = sqlStore.getBegrepById(id)
 
         return if (begrep != null) {
