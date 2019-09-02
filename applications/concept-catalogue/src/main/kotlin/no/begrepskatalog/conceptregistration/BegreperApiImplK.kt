@@ -1,6 +1,7 @@
 package no.begrepskatalog.conceptregistration
 
 import io.swagger.annotations.ApiParam
+import no.begrepskatalog.conceptregistration.security.FdkPermissions
 import no.begrepskatalog.conceptregistration.storage.SqlStore
 import no.begrepskatalog.conceptregistration.utils.patchBegrep
 import no.begrepskatalog.conceptregistration.validation.isValidBegrep
@@ -17,25 +18,26 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import javax.json.JsonException
 import java.time.OffsetDateTime
+import javax.json.JsonException
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
 private val logger = LoggerFactory.getLogger(BegreperApiImplK::class.java)
 
 @RestController
-class BegreperApiImplK(val sqlStore: SqlStore) : BegreperApi {
+class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermissions) : BegreperApi {
 
     @Value("\${application.baseURL}")
     lateinit var baseURL: String
 
     override fun getBegrep(httpServletRequest: HttpServletRequest?, @PathVariable orgnumber: String?, status: Status?): ResponseEntity<MutableList<Begrep>> {
         logger.info("Get begrep $orgnumber")
-        if (orgnumber != null) {
+        if (orgnumber != null && fdkPermissions.hasPermission(orgnumber, "publisher", "admin")) {
             return ResponseEntity.ok(sqlStore.getBegrepByCompany(orgnumber, status))
         } else {
-            return ResponseEntity.ok(mutableListOf()) //TODO: When the publisher module is up and running, this will most likely be a fatal error
+            //todo show list for all publishers  the user has access to
+            return ResponseEntity.ok(mutableListOf())
         }
     }
 

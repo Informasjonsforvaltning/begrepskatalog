@@ -1,6 +1,7 @@
 package no.begrepskatalog.conceptregistration
 
 import com.nhaarman.mockitokotlin2.*
+import no.begrepskatalog.conceptregistration.security.FdkPermissions
 import no.begrepskatalog.conceptregistration.storage.SqlStore
 import no.begrepskatalog.conceptregistration.utils.patchBegrep
 import no.begrepskatalog.generated.model.*
@@ -18,10 +19,12 @@ class ControllerTest {
     fun test_generation_of_urls_for_new_begrep() {
         val sqlStoreMock: SqlStore = prepareSqlStoreMock()
         val httpServletRequestMock: HttpServletRequest = mock()
+        val fdkPermissionsMock: FdkPermissions = prepareFdkPermissionsMock()
 
-        val begreperApiImplK = BegreperApiImplK(sqlStoreMock)
+        val begreperApiImplK = BegreperApiImplK(sqlStoreMock, fdkPermissionsMock)
         begreperApiImplK.baseURL = "https://registrering-begrep.ut1.fellesdatakatalog.brreg.no"
         val begrep = Begrep()
+        begrep.ansvarligVirksomhet= createTestVirksomhet()
 
         val retValue = begreperApiImplK.createBegrep(httpServletRequestMock, begrep)
         assertNotNull(retValue)
@@ -34,11 +37,12 @@ class ControllerTest {
     @Test(expected = RuntimeException::class)
     fun test_validations_begrep_does_not_exist() {
         val sqlStoreMock: SqlStore = prepareSqlStoreMock()
+        val fdkPermissionsMock: FdkPermissions = prepareFdkPermissionsMock()
 
         val emptyBegrep = Begrep()
 
         val httpServletRequestMock: HttpServletRequest = mock()
-        val begreperApiImplK = BegreperApiImplK(sqlStoreMock)
+        val begreperApiImplK = BegreperApiImplK(sqlStoreMock,fdkPermissionsMock)
         val retValue = begreperApiImplK.setBegrepById(httpServletRequestMock, "esf3", listOf(), true)
     }
 
@@ -46,21 +50,23 @@ class ControllerTest {
     @Test(expected = RuntimeException::class)
     fun test_validations_begrep_has_not_ansvarligVirksomhet() {
         val sqlStoreMock: SqlStore = prepareSqlStoreMock()
+        val fdkPermissionsMock: FdkPermissions = prepareFdkPermissionsMock()
 
         val someBegrep = makeBegrep()//Same as mock pretends to save
         someBegrep.ansvarligVirksomhet = null
 
         val httpServletRequestMock: HttpServletRequest = mock()
-        val begreperApiImplK = BegreperApiImplK(sqlStoreMock)
+        val begreperApiImplK = BegreperApiImplK(sqlStoreMock, fdkPermissionsMock)
         val retValue = begreperApiImplK.setBegrepById(httpServletRequestMock, "esf3", listOf(), true)
     }
 
     @Test
     fun test_deletion_both_checks_existence_and_actually_calls_delete() {
         val sqlStoreMock: SqlStore = prepareSqlStoreMock()
+        val fdkPermissionsMock: FdkPermissions = prepareFdkPermissionsMock()
 
         val httpServletRequestMock: HttpServletRequest = mock()
-        val begreperApiImplK = BegreperApiImplK(sqlStoreMock)
+        val begreperApiImplK = BegreperApiImplK(sqlStoreMock, fdkPermissionsMock)
         val retValue = begreperApiImplK.deleteBegrepById(httpServletRequestMock, "dummyId")
 
         verify(sqlStoreMock).deleteBegrepById("dummyId")
@@ -290,5 +296,13 @@ class ControllerTest {
         whenever(sqlStoreMock.saveBegrep(any())).thenReturn(makeBegrep())
 
         return sqlStoreMock
+    }
+
+    private fun prepareFdkPermissionsMock(): FdkPermissions {
+        val fdkPermissionsMock: FdkPermissions = mock {}
+
+        whenever(fdkPermissionsMock.hasPermission(any(),any(),any())).thenReturn(true)
+
+        return fdkPermissionsMock
     }
 }
