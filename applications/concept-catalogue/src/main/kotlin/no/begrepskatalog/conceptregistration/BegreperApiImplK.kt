@@ -46,6 +46,10 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
         begrep.id = null //We are the authority that provides ids
         begrep.updateLastChangedAndByWhom()
 
+        if(!fdkPermissions.hasPermission( begrep?.ansvarligVirksomhet?.id, "publisher", "admin")) {
+            return ResponseEntity<Void>(HttpStatus.FORBIDDEN)
+        }
+
         return sqlStore.saveBegrep(begrep)
                 ?.let {
                     val headers = HttpHeaders()
