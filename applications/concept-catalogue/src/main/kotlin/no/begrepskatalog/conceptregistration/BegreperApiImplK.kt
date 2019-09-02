@@ -46,7 +46,7 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
         begrep.id = null //We are the authority that provides ids
         begrep.updateLastChangedAndByWhom()
 
-        if(!fdkPermissions.hasPermission( begrep?.ansvarligVirksomhet?.id, "publisher", "admin")) {
+        if (!fdkPermissions.hasPermission(begrep?.ansvarligVirksomhet?.id, "publisher", "admin")) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
@@ -69,7 +69,7 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
             throw RuntimeException("Attempt to PATCH begrep with no id path variable given")
         }
 
-        if(!fdkPermissions.hasPermission( id, "publisher", "admin")) {
+        if (!fdkPermissions.hasPermission(id, "publisher", "admin")) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
@@ -111,7 +111,7 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
 
     override fun getBegrepById(httpServletRequest: HttpServletRequest, @ApiParam(value = "id", required = true) @PathVariable("id") id: String): ResponseEntity<Begrep> {
 
-        if(!fdkPermissions.hasPermission( id, "publisher", "admin")) {
+        if (!fdkPermissions.hasPermission(id, "publisher", "admin")) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
@@ -136,7 +136,7 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
 
     override fun deleteBegrepById(httpServletRequest: HttpServletRequest, @ApiParam(value = "id", required = true) @PathVariable("id") id: String): ResponseEntity<Void> {
 
-        if(!fdkPermissions.hasPermission( id, "publisher", "admin")) {
+        if (!fdkPermissions.hasPermission(id, "publisher", "admin")) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
