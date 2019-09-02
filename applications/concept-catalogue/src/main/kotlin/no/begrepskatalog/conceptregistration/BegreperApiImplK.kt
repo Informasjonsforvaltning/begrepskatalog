@@ -69,6 +69,10 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
             throw RuntimeException("Attempt to PATCH begrep with no id path variable given")
         }
 
+        if(!fdkPermissions.hasPermission( id, "publisher", "admin")) {
+            return ResponseEntity(HttpStatus.FORBIDDEN)
+        }
+
         if (jsonPatchOperations == null) {
             throw RuntimeException("Attempt to PATCH begrep with no changes provided. Id provided was $id")
         }
