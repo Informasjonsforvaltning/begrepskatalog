@@ -136,6 +136,10 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
 
     override fun deleteBegrepById(httpServletRequest: HttpServletRequest, @ApiParam(value = "id", required = true) @PathVariable("id") id: String): ResponseEntity<Void> {
 
+        if(!fdkPermissions.hasPermission( id, "publisher", "admin")) {
+            return ResponseEntity(HttpStatus.FORBIDDEN)
+        }
+
         //Validate that begrep exists
         if (!sqlStore.begrepExists(id)) {
             logger.info("Request to delete non-existing begrep, id $id ignored")
