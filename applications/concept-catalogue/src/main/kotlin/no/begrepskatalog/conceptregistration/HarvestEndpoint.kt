@@ -3,10 +3,12 @@ package no.begrepskatalog.conceptregistration
 import no.begrepskatalog.conceptregistration.storage.SqlStore
 import no.begrepskatalog.generated.api.CollectionsApi
 import no.begrepskatalog.generated.model.Begrep
+import no.begrepskatalog.generated.model.Kildebeskrivelse
 import no.begrepskatalog.generated.model.Status
 import no.difi.skos_ap_no.concept.builder.Conceptcollection.CollectionBuilder
 import no.difi.skos_ap_no.concept.builder.ModelBuilder
 import no.difi.skos_ap_no.concept.builder.generic.AudienceType
+import no.difi.skos_ap_no.concept.builder.generic.SourceType
 import org.apache.jena.rdf.model.Resource
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -48,47 +50,66 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
     }
 
     fun appendBegrepToCollection(begrep: Begrep, collectionBuilder: CollectionBuilder): Resource {
-        var sourceItself = if (begrep.kildebeskrivelse != null && begrep.kildebeskrivelse.kilde != null && begrep.kildebeskrivelse.kilde.size > 0) begrep.kildebeskrivelse.kilde[0].uri + begrep.kildebeskrivelse.kilde[0].tekst else ""
         val urlForAccessingThisBegrepsRegistration = baseURL + begrep.ansvarligVirksomhet.id + "/" + begrep.id
-        var builder = collectionBuilder.conceptBuilder(urlForAccessingThisBegrepsRegistration)
-                .publisher(begrep.ansvarligVirksomhet.id)
-                .definitionBuilder()
-                    .text(begrep.definisjon, "nb")
-                    .sourcedescriptionBuilder()
-                        .sourceBuilder()
-                            .label(sourceItself, "nb")
-                            .seeAlso(begrep.kildebeskrivelse?.forholdTilKilde?.value ?: "")
-                            .build()
-                        .build()
-                    .audience(AudienceType.Audience.Public)
-                    .scopeNote(begrep.merknad ?: "", "nb")
-                    .scopeBuilder()
-                        .label(begrep.omfang?.tekst ?: "", "nb")
-                        .seeAlso(begrep.omfang?.uri)
-                        .build()
-                    .modified(begrep.gyldigFom)
-                    .build()
-                .identifier(begrep.id)
-                .prefLabelBuilder()
-                    .label(begrep.anbefaltTerm ?: "", "no")
-                    .build()
-                .example(begrep.eksempel, "nb")
-                .subject(begrep.fagområde, "nb")
-                .contactPointBuilder()
-                    .email(begrep.kontaktpunkt?.harEpost ?: "")
-                    .telephone(begrep.kontaktpunkt?.harTelefon ?: "")
-                    .build()
 
-        begrep.bruksområde.forEach { bruksområde -> builder = builder.domainOfUse(bruksområde, "nb") }
+        var conceptBuilder = collectionBuilder.conceptBuilder(urlForAccessingThisBegrepsRegistration)
+        val definitionBuilder = conceptBuilder.definitionBuilder()
+        val sourceDescriptionBuilder = definitionBuilder.sourcedescriptionBuilder()
+        val sourceBuilder = sourceDescriptionBuilder.sourceBuilder()
 
-        var altLabelBuilder = builder.altLabelBuilder()
+
+        if (begrep.kildebeskrivelse != null) {
+
+            when (begrep.kildebeskrivelse.forholdTilKilde) {
+                Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT -> sourceDescriptionBuilder.sourcetype(SourceType.Source.Userdefined)
+                Kildebeskrivelse.ForholdTilKildeEnum.BASERTPAAKILDE -> sourceDescriptionBuilder.sourcetype(SourceType.Source.BasedOn)
+                Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE-> sourceDescriptionBuilder.sourcetype(SourceType.Source.QuoteFrom)
+            }
+            begrep.kildebeskrivelse.kilde?.forEach{
+                sourceBuilder.label(it.tekst,"nb")
+                        .seeAlso(it.uri)
+            }
+
+            sourceBuilder.build()
+            sourceDescriptionBuilder.build()
+        }
+
+        definitionBuilder
+            .text(begrep.definisjon, "nb")
+            .audience(AudienceType.Audience.Public)
+            .scopeNote(begrep.merknad ?: "", "nb")
+            .scopeBuilder()
+                .label(begrep.omfang?.tekst ?: "", "nb")
+                .seeAlso(begrep.omfang?.uri)
+            .build()
+            .modified(begrep.gyldigFom)
+        .build()
+
+        conceptBuilder
+            .identifier(begrep.id)
+            .publisher(begrep.ansvarligVirksomhet.id)
+            .prefLabelBuilder()
+                .label(begrep.anbefaltTerm ?: "", "no")
+            .build()
+            .example(begrep.eksempel, "nb")
+            .subject(begrep.fagområde, "nb")
+            .contactPointBuilder()
+                .email(begrep.kontaktpunkt?.harEpost ?: "")
+                .telephone(begrep.kontaktpunkt?.harTelefon ?: "")
+            .build()
+
+
+        begrep.bruksområde.forEach { bruksområde -> conceptBuilder = conceptBuilder.domainOfUse(bruksområde, "nb") }
+
+        var altLabelBuilder = conceptBuilder.altLabelBuilder()
         begrep.tillattTerm.forEach { tillattTerm -> altLabelBuilder = altLabelBuilder.label(tillattTerm, "nb") }
-        builder = altLabelBuilder.build()
+        conceptBuilder = altLabelBuilder.build()
 
-        var hiddenLabelBuilder = builder.hiddenLabelBuilder()
+        var hiddenLabelBuilder = conceptBuilder.hiddenLabelBuilder()
         begrep.frarådetTerm.forEach { frarådetTerm -> hiddenLabelBuilder = hiddenLabelBuilder.label(frarådetTerm, "nb") }
-        builder = hiddenLabelBuilder.build()
+        conceptBuilder = hiddenLabelBuilder.build()
 
-        return builder.resource
+
+        return conceptBuilder.build().resource
     }
 }
