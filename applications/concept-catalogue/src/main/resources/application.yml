@@ -1,3 +1,6 @@
+logging:
+  level.no: ${LOG_LEVEL:DEBUG}
+
 spring:
   datasource:
     url: ${FDK_SQL_JDBC_CONNECTION:jdbc:postgresql://localhost:5432/postgres?currentSchema=conceptregistration}
