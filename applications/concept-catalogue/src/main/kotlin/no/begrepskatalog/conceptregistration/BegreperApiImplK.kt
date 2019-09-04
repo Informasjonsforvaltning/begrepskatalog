@@ -69,10 +69,6 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
             throw RuntimeException("Attempt to PATCH begrep with no id path variable given")
         }
 
-        if (!fdkPermissions.hasPermission(id, "publisher", "admin")) {
-            return ResponseEntity(HttpStatus.FORBIDDEN)
-        }
-
         if (jsonPatchOperations == null) {
             throw RuntimeException("Attempt to PATCH begrep with no changes provided. Id provided was $id")
         }
@@ -82,6 +78,10 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
         }
         //Get the begrep, and just update
         var storedBegrep = sqlStore.getBegrepById(id)
+
+        if (!fdkPermissions.hasPermission(storedBegrep?.ansvarligVirksomhet?.id, "publisher", "admin")) {
+            return ResponseEntity(HttpStatus.FORBIDDEN)
+        }
 
         if (storedBegrep == null) {
             throw java.lang.RuntimeException("Attempt to PATCH begrep with id $id, that does not exist")
@@ -111,11 +111,11 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
 
     override fun getBegrepById(httpServletRequest: HttpServletRequest, @ApiParam(value = "id", required = true) @PathVariable("id") id: String): ResponseEntity<Begrep> {
 
-        if (!fdkPermissions.hasPermission(id, "publisher", "admin")) {
+        val begrep = sqlStore.getBegrepById(id)
+
+        if (!fdkPermissions.hasPermission(begrep?.ansvarligVirksomhet?.id, "publisher", "admin")) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
-
-        val begrep = sqlStore.getBegrepById(id)
 
         return if (begrep != null) {
             ResponseEntity.ok(begrep)
@@ -136,10 +136,6 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
 
     override fun deleteBegrepById(httpServletRequest: HttpServletRequest, @ApiParam(value = "id", required = true) @PathVariable("id") id: String): ResponseEntity<Void> {
 
-        if (!fdkPermissions.hasPermission(id, "publisher", "admin")) {
-            return ResponseEntity(HttpStatus.FORBIDDEN)
-        }
-
         //Validate that begrep exists
         if (!sqlStore.begrepExists(id)) {
             logger.info("Request to delete non-existing begrep, id $id ignored")
@@ -148,6 +144,10 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
 
         //Validate that begrep is NOT published
         val begrep = sqlStore.getBegrepById(id)
+
+        if (!fdkPermissions.hasPermission(begrep?.ansvarligVirksomhet?.id, "publisher", "admin")) {
+            return ResponseEntity(HttpStatus.FORBIDDEN)
+        }
 
         if (begrep?.status == Status.PUBLISERT) {
             logger.warn("Attempt to delete PUBLISHED begrep $id ignored")
