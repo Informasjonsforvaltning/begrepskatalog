@@ -291,6 +291,8 @@ class ControllerTest {
     private fun prepareSqlStoreMock(): SqlStore {
         val sqlStoreMock: SqlStore = mock {}
 
+
+        whenever(sqlStoreMock.getBegrepById("dummyId")).thenReturn(makeBegrep())
         whenever(sqlStoreMock.begrepExists("dummyId")).thenReturn(true)
         whenever(sqlStoreMock.begrepExists("NonExistingId")).thenReturn(false)
         whenever(sqlStoreMock.saveBegrep(any())).thenReturn(makeBegrep())
