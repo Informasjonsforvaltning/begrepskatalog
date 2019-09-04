@@ -64,6 +64,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
 
     fun deleteBegrepById(id : String) {
 
+        deleteURITextForBegrep(id)
         connectionManager.getConnection().use {
             var stmt = it.prepareStatement(deleteBegrepSQL)
             stmt.setString(1, id)
@@ -72,7 +73,6 @@ class SqlStore(val connectionManager: ConnectionManager) {
 
             it.close()
         }
-        deleteURITextForBegrep(id)
     }
 
     fun deleteURITextForBegrep(id : String) {
