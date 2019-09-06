@@ -1,0 +1,22 @@
+{
+  "name": "concept-catalogue",
+  "version": "1.0.0",
+  "description": "Backend for the concept-registration.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "release": "standard-version --no-verify"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Informasjonsforvaltning/concept-catalogue.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Informasjonsforvaltning/concept-catalogue/issues"
+  },
+  "homepage": "https://github.com/Informasjonsforvaltning/concept-catalogue#readme",
+  "devDependencies": {
+    "standard-version": "^7.0.0"
+  }
+}
