@@ -5,8 +5,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.sql.*
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
+import java.time.*
 
 private val logger: Logger = LoggerFactory.getLogger(SqlStore::class.java)
 
@@ -457,7 +456,7 @@ class SqlStore(val connectionManager: ConnectionManager) {
                 brukerId = result.getString("endret_av_brukernavn")
                 if (result.getDate("sist_endret") != null && result.getTimestamp("sist_endret") != null) {
                     val endringsTidspunkt = result.getTimestamp("sist_endret")
-                    endringstidspunkt = OffsetDateTime.of(endringsTidspunkt.toLocalDateTime(), ZoneOffset.ofHours(0))
+                    endringstidspunkt = OffsetDateTime.of(endringsTidspunkt.toLocalDateTime(), OffsetDateTime.now().offset)
                 }
             }
             tillattTerm = result.getString("tillatt_term")?.let { s -> s.split(STRING_LIST_DELIMITER).filter{ !it.isNullOrEmpty() } } ?: listOf()
