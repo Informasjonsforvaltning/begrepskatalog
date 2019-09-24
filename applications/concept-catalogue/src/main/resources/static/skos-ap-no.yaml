@@ -29,7 +29,7 @@ paths:
         - name: publisher
           in: query
           description: Ansvarlig virksomhet sitt organisasjonsnummer
-          required: true
+          required: false
           schema:
             type: string
       responses:

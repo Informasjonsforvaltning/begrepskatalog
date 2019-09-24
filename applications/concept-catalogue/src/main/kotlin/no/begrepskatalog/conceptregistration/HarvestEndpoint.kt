@@ -5,6 +5,7 @@ import no.begrepskatalog.generated.api.CollectionsApi
 import no.begrepskatalog.generated.model.Begrep
 import no.begrepskatalog.generated.model.Kildebeskrivelse
 import no.begrepskatalog.generated.model.Status
+import no.begrepskatalog.generated.model.Virksomhet
 import no.difi.skos_ap_no.concept.builder.Conceptcollection.CollectionBuilder
 import no.difi.skos_ap_no.concept.builder.ModelBuilder
 import no.difi.skos_ap_no.concept.builder.generic.AudienceType
@@ -29,24 +30,43 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
     override fun getCollections(httpServletRequest: HttpServletRequest, publisher: String): ResponseEntity<Any> {
         logger.info("Harvest - request")
 
+        var modelBuilder = ModelBuilder.builder()
+
+        if (publisher == null) {
+            getCollections(httpServletRequest, modelBuilder);
+        } else {
+            getCollection(httpServletRequest, modelBuilder, publisher);
+        }
+
+        val writer = StringWriter()
+        modelBuilder.build().write(writer, "TURTLE")
+        println(writer.buffer)
+
+        return ResponseEntity.ok(writer.buffer.toString())
+    }
+
+    fun getCollections(httpServletRequest: HttpServletRequest, modelBuilder: ModelBuilder) {
+        for (virksomhet in sqlStore.getAllVirksomheter()) {
+            getCollection(httpServletRequest, modelBuilder, virksomhet.key)
+        }
+    }
+
+    fun getCollection(httpServletRequest: HttpServletRequest, modelBuilder: ModelBuilder, publisher: String) {
+
         val allPublishedBegrepByCompany = sqlStore.getBegrepByCompany(publisher, Status.PUBLISERT)
 
-        logger.info("Harvest found ${allPublishedBegrepByCompany.size} Begrep")
+        logger.info("Harvest $publisher found ${allPublishedBegrepByCompany.size} Begrep")
 
-        var collectionBuilder = ModelBuilder.builder()
-                                    .collectionBuilder("https://registrering-begrep.ut1.fellesdatakatalog.brreg.no/")
+        var collectionBuilder = modelBuilder
+                                    .collectionBuilder("https://registrering-begrep.fellesdatakatalog.brreg.no/$publisher")
                                         .publisher(publisher)
-                                        .name(publisher + " sin samling")
+                                        .name("$publisher sin samling")
 
         for (begrep in allPublishedBegrepByCompany) {
             appendBegrepToCollection(begrep, collectionBuilder)
         }
 
-        val writer = StringWriter()
-        collectionBuilder.build().build().write(writer, "TURTLE")
-        println(writer.buffer)
-
-        return ResponseEntity.ok(writer.buffer.toString())
+        collectionBuilder.build()
     }
 
     fun appendBegrepToCollection(begrep: Begrep, collectionBuilder: CollectionBuilder): Resource {
