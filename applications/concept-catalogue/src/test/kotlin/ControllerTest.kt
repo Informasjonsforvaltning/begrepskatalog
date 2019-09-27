@@ -9,6 +9,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Ignore
 import org.junit.Test
+import org.springframework.http.HttpStatus
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import javax.servlet.http.HttpServletRequest
@@ -71,6 +72,16 @@ class ControllerTest {
 
         verify(sqlStoreMock).deleteBegrepById("dummyId")
         verify(sqlStoreMock).begrepExists("dummyId")
+    }
+
+    @Test
+    fun test_liveness_and_readyness() {
+        val sqlStoreMock: SqlStore = prepareSqlStoreMock()
+        val fdkPermissionsMock: FdkPermissions = prepareFdkPermissionsMock()
+
+        val begreperApiImplK = BegreperApiImplK(sqlStoreMock, fdkPermissionsMock)
+        assert(begreperApiImplK.ping().statusCode == HttpStatus.OK)
+        assert(begreperApiImplK.ready().statusCode == HttpStatus.OK)
     }
 
     @Test
@@ -295,6 +306,7 @@ class ControllerTest {
         whenever(sqlStoreMock.getBegrepById("dummyId")).thenReturn(makeBegrep())
         whenever(sqlStoreMock.begrepExists("dummyId")).thenReturn(true)
         whenever(sqlStoreMock.begrepExists("NonExistingId")).thenReturn(false)
+        whenever(sqlStoreMock.ready()).thenReturn(true)
         whenever(sqlStoreMock.saveBegrep(any())).thenReturn(makeBegrep())
 
         return sqlStoreMock
