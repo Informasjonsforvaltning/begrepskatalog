@@ -86,6 +86,11 @@ class ConceptRegistrationApplicationTests {
     }
 
     @Test
+    fun testReadyNessCheck() {
+        assertTrue(sqlStore.ready())
+    }
+
+    @Test
     fun savePublishedBegrep() {
         var testBegrep = createBegrep()
         testBegrep.status = Status.PUBLISERT

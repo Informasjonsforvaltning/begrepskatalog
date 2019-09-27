@@ -52,6 +52,8 @@ public class SecurityConfigurer extends ResourceServerConfigurerAdapter {
 
         http.authorizeRequests()
             .antMatchers(HttpMethod.GET, "/collections/**").permitAll() // harvest endpoint is public
+            .antMatchers(HttpMethod.GET, "/ping").permitAll() // liveness endpoint is public
+            .antMatchers(HttpMethod.GET, "/ready").permitAll() // readyness endpoint is public
             .anyRequest().authenticated();
     }
 

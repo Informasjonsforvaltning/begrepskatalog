@@ -61,6 +61,8 @@ class SqlStore(val connectionManager: ConnectionManager) {
 
     private val getAllPublishedRegistrationsSQL = "select * from conceptregistrations c LEFT JOIN  conceptregistration.status s on c.status = s.id where c.status = " + DB_STATUS_PUBLISHED
 
+    private val readySQL = "select count(*) from conceptregistrations"
+
     fun deleteBegrepById(id : String) {
 
         deleteURITextForBegrep(id)
@@ -71,6 +73,19 @@ class SqlStore(val connectionManager: ConnectionManager) {
             var result = stmt.resultSet
 
             it.close()
+        }
+    }
+
+    fun ready() : Boolean {
+        try {
+            connectionManager.getConnection().use {
+                var stmt = it.prepareStatement(readySQL)
+                stmt.execute()
+                var result = stmt.resultSet
+                return result != null
+            }
+        } catch (t : Throwable) {
+            return false
         }
     }
 
