@@ -95,7 +95,7 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
         }
 
         definitionBuilder
-            .text(begrep.definisjon, "nb")
+            .text(begrep.definisjon?.let { it.toString() } ?: "", "nb")
             .audience(AudienceType.Audience.Public)
             .scopeNote(begrep.merknad ?: "", "nb")
             .scopeBuilder()
@@ -109,7 +109,7 @@ class HarvestEndpoint(val sqlStore: SqlStore) : CollectionsApi {
             .identifier(begrep.id)
             .publisher(begrep.ansvarligVirksomhet.id)
             .prefLabelBuilder()
-                .label(begrep.anbefaltTerm ?: "", "no")
+                .label(begrep.anbefaltTerm?.let { it.toString() } ?: "", "no")
             .build()
             .example(begrep.eksempel, "nb")
             .subject(begrep.fagområde, "nb")

@@ -276,6 +276,9 @@ class SqlStore(val connectionManager: ConnectionManager) {
                 logger.info("Virksomhet ${storedVirksomhet.id} already stored")
             }
 
+            val anbefaltTerm: String? = begrep.anbefaltTerm?.let { value -> value.toString() }
+            val definisjon: String? = begrep.definisjon?.let { value -> value.toString() }
+
             val bruksområde: String? = begrep.bruksområde?.let { list -> if(list.isNotEmpty()) list.joinToString(STRING_LIST_DELIMITER) else null }
             val tillattTerm: String? = begrep.tillattTerm?.let { list -> if(list.isNotEmpty()) list.joinToString(STRING_LIST_DELIMITER) else null }
             val frarådetTerm: String? = begrep.frarådetTerm?.let { list -> if(list.isNotEmpty()) list.joinToString(STRING_LIST_DELIMITER) else null }
@@ -288,8 +291,8 @@ class SqlStore(val connectionManager: ConnectionManager) {
                     begrepStmt = it.prepareStatement(saveBegrepSQL)
                     begrepStmt?.setString(1, begrep.id)
                     begrepStmt?.setInt(2, mapStatusToInt(begrep.status))
-                    begrepStmt?.setString(3, begrep.anbefaltTerm)
-                    begrepStmt?.setString(4, begrep.definisjon)
+                    begrepStmt?.setString(3, anbefaltTerm)
+                    begrepStmt?.setString(4, definisjon)
                     begrepStmt?.setInt(5, forholdTilKilde)
                     begrepStmt?.setString(6, begrep.merknad)
                     begrepStmt?.setString(7, virksomhet.id)
@@ -330,8 +333,8 @@ class SqlStore(val connectionManager: ConnectionManager) {
                 } else {
                     begrepStmt = it.prepareStatement(updateBegrepSQL)
                     begrepStmt?.setInt(1, mapStatusToInt(begrep.status))
-                    begrepStmt?.setString(2, begrep.anbefaltTerm)
-                    begrepStmt?.setString(3, begrep.definisjon)
+                    begrepStmt?.setString(2, anbefaltTerm)
+                    begrepStmt?.setString(3, definisjon)
                     begrepStmt?.setInt(4, forholdTilKilde)
                     begrepStmt?.setString(5, begrep.merknad)
                     begrepStmt?.setString(6, virksomhet.id)

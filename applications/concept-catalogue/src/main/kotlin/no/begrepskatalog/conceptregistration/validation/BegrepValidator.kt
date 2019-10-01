@@ -6,8 +6,10 @@ import org.hibernate.validator.internal.util.ModUtil
 fun isValidBegrep(begrep: Begrep): Boolean = when {
     begrep.status == null -> false
     begrep.status == Status.UTKAST -> false
-    begrep.anbefaltTerm.isNullOrBlank() -> false
-    begrep.definisjon.isNullOrBlank() -> false
+    begrep.anbefaltTerm == null -> false
+    !isValidTranslatableField(begrep.anbefaltTerm) -> false
+    begrep.definisjon == null -> false
+    !isValidTranslatableField(begrep.definisjon) -> false
     begrep.ansvarligVirksomhet == null -> false
     !begrep.ansvarligVirksomhet.isValid() -> false
     else -> true
@@ -28,4 +30,10 @@ private fun isValidOrganisationNumber(organisationNumber: String): Boolean {
             .map { it.toInt() }
     val controlDigit: Int = ModUtil.calculateMod11Check(organisationNumberDigits, 7)
     return organisationNumber == "$organisationNumberWithoutControlDigit$controlDigit"
+}
+
+private fun isValidTranslatableField(field: Any): Boolean = when {
+    field is String && field.isNullOrBlank() -> false
+    field is Map<*, *> && !field.values.stream().anyMatch { it is String && !it.isNullOrBlank() } -> false
+    else -> true
 }

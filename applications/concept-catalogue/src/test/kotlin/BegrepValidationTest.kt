@@ -65,6 +65,24 @@ class BegrepValidationTest {
 
         begrep.anbefaltTerm = "anbefaltTerm"
         Assert.assertTrue(isValidBegrep(begrep))
+
+        begrep.anbefaltTerm = mapOf("nb" to null)
+        Assert.assertFalse(isValidBegrep(begrep))
+
+        begrep.anbefaltTerm = mapOf("nb" to "")
+        Assert.assertFalse(isValidBegrep(begrep))
+
+        begrep.anbefaltTerm = mapOf("nb" to "  ")
+        Assert.assertFalse(isValidBegrep(begrep))
+
+        begrep.anbefaltTerm = mapOf("nb" to "anbefaltTerm")
+        Assert.assertTrue(isValidBegrep(begrep))
+
+        begrep.anbefaltTerm = mapOf("nb" to "anbefaltTerm", "en" to "recommendedTerm")
+        Assert.assertTrue(isValidBegrep(begrep))
+
+        begrep.anbefaltTerm = mapOf("nb" to "anbefaltTerm", "en" to null)
+        Assert.assertTrue(isValidBegrep(begrep))
     }
 
     @Test
