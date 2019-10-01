@@ -155,7 +155,7 @@ components:
           status:
             $ref: "#/components/schemas/Status"
           anbefaltTerm:
-            type: string
+            type: object
           tillattTerm:
             type: array
             items:
@@ -165,7 +165,7 @@ components:
             items:
               type: string
           definisjon:
-            type: string
+            type: object
           kildebeskrivelse:
             $ref: "#/components/schemas/Kildebeskrivelse"
           merknad:
