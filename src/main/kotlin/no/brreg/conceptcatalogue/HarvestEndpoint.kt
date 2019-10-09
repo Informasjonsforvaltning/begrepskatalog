@@ -74,7 +74,7 @@ class HarvestEndpoint(val begrepRepository: BegrepRepository, val mongoOperation
         val urlForAccessingThisBegrepsRegistration = baseURL + begrep.ansvarligVirksomhet.id + "/" + begrep.id
 
         var conceptBuilder = collectionBuilder.conceptBuilder(urlForAccessingThisBegrepsRegistration)
-        val definitionBuilder = conceptBuilder.definitionBuilder()
+        var definitionBuilder = conceptBuilder.definitionBuilder()
         val sourceDescriptionBuilder = definitionBuilder.sourcedescriptionBuilder()
         val sourceBuilder = sourceDescriptionBuilder.sourceBuilder()
 
@@ -95,8 +95,9 @@ class HarvestEndpoint(val begrepRepository: BegrepRepository, val mongoOperation
             sourceDescriptionBuilder.build()
         }
 
+        begrep.definisjon.tekst.forEach { definitionBuilder = definitionBuilder.text(it.value, it.key) }
+
         definitionBuilder
-                .text(begrep.definisjon?.let { it.toString() } ?: "", "nb")
                 .audience(AudienceType.Audience.Public)
                 .scopeNote(begrep.merknad ?: "", "nb")
                 .scopeBuilder()
@@ -106,12 +107,14 @@ class HarvestEndpoint(val begrepRepository: BegrepRepository, val mongoOperation
                 .modified(begrep.gyldigFom)
                 .build()
 
-        conceptBuilder
+        var prefLabelBuilder = conceptBuilder
                 .identifier(begrep.id)
                 .publisher(begrep.ansvarligVirksomhet.id)
                 .prefLabelBuilder()
-                .label(begrep.anbefaltTerm?.let { it.toString() } ?: "", "nb")
-                .build()
+
+        begrep.anbefaltTerm.navn.forEach { prefLabelBuilder = prefLabelBuilder.label(it.value, it.key) }
+
+        prefLabelBuilder.build()
                 .example(begrep.eksempel, "nb")
                 .subject(begrep.fagområde, "nb")
                 .contactPointBuilder()

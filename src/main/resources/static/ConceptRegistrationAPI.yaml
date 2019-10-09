@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   description: Tilgjengeliggjør begreper fra Begrepskatalog
-  version: '1.0'
+  version: '2.0.0'
   title: Begrepskatalog API
   contact:
     name: Brønnøysundregistrene
@@ -155,7 +155,7 @@ components:
           status:
             $ref: "#/components/schemas/Status"
           anbefaltTerm:
-            type: object
+            $ref: "#/components/schemas/Term"
           tillattTerm:
             type: array
             items:
@@ -165,7 +165,7 @@ components:
             items:
               type: string
           definisjon:
-            type: object
+            $ref: "#/components/schemas/Definisjon"
           kildebeskrivelse:
             $ref: "#/components/schemas/Kildebeskrivelse"
           merknad:
@@ -294,6 +294,23 @@ components:
         from:
           description: 'A JSON Pointer path pointing to the location to move/copy from.'
           type: string
+    Definisjon:
+      type: object
+      description: The definition [skosno:Definisjon] in differerent languages
+      properties:
+        tekst:
+          $ref: '#/components/schemas/TekstMedSpraakKode'
+    Term:
+      type: object
+      description: The term [skosno:Definisjon] in differerent languages
+      properties:
+        navn:
+          $ref: '#/components/schemas/TekstMedSpraakKode'
+    TekstMedSpraakKode:
+      description: A generic object to hold multilanguage texts, that has language code (according to ISO 639-1) as keys
+      type: object
+      additionalProperties:
+        type: string
   securitySchemes:
     bearerAuth:            # arbitrary name for the security scheme
       type: http
