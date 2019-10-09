@@ -122,18 +122,23 @@ class ControllerTest {
     fun makeBegrep(): Begrep =
             Begrep().apply {
                 id = "1c770979-34b0-439c-a7cb-adacb3619927"
-                definisjon = "testbegrep"
+                definisjon = Definisjon().apply {
+                    tekst = mapOf("nb" to "testbegrep")
+                }
                 ansvarligVirksomhet = createTestVirksomhet()
             }
 
     fun makeDataFilledBegrepA(): Begrep =
             Begrep().apply {
                 id = "1c770979-34b0-439c-a7cb-adacb3619927"
-                definisjon = "testbegrepA"
+                anbefaltTerm = Term().apply {
+                    navn = mapOf("nb" to "fødestedA")
+                }
+                definisjon = Definisjon().apply {
+                    tekst = mapOf("nb" to "testbegrepA")
+                }
                 ansvarligVirksomhet = createTestVirksomhet()
                 status = Status.UTKAST
-                anbefaltTerm = "fødestedA"
-                definisjon = "er geografisk navn på hvor i fødekommunen eller fødelandet personen er født.A"
                 kildebeskrivelse = Kildebeskrivelse()
                 kildebeskrivelse.kilde = mutableListOf()
                 val kilde = URITekst()
@@ -156,11 +161,14 @@ class ControllerTest {
     fun makeDataFilledBegrepB(): Begrep =
             Begrep().apply {
                 id = "1c770979-34b0-439c-a7cb-adacb3619927"
-                definisjon = "testbegrepB"
+                anbefaltTerm = Term().apply {
+                    navn = mapOf("nb" to "fødestedB")
+                }
+                definisjon = Definisjon().apply {
+                    tekst = mapOf("nb" to "testbegrepB")
+                }
                 ansvarligVirksomhet = createTestVirksomhet()
                 status = Status.UTKAST
-                anbefaltTerm = "fødestedB"
-                definisjon = "er geografisk navn på hvor i fødekommunen eller fødelandet personen er født.B"
                 kildebeskrivelse = Kildebeskrivelse()
                 val kilde = URITekst()
                 kilde.tekst = "skatteetatenB"
@@ -183,18 +191,13 @@ class ControllerTest {
         return listOf(
                 JsonPatchOperation().apply {
                     op = JsonPatchOperation.OpEnum.REPLACE
-                    path = "/definisjon"
+                    path = "/definisjon/tekst/nb"
                     value = "testbegrepB"
                 },
                 JsonPatchOperation().apply {
                     op = JsonPatchOperation.OpEnum.REPLACE
-                    path = "/anbefaltTerm"
+                    path = "/anbefaltTerm/navn/nb"
                     value = "fødestedB"
-                },
-                JsonPatchOperation().apply {
-                    op = JsonPatchOperation.OpEnum.REPLACE
-                    path = "/definisjon"
-                    value = "er geografisk navn på hvor i fødekommunen eller fødelandet personen er født.B"
                 },
                 JsonPatchOperation().apply {
                     op = JsonPatchOperation.OpEnum.REPLACE
