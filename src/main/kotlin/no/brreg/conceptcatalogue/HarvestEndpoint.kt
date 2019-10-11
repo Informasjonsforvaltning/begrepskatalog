@@ -1,6 +1,6 @@
-package no.begrepskatalog.conceptregistration
+package no.brreg.conceptcatalogue
 
-import no.begrepskatalog.conceptregistration.storage.SqlStore
+import no.brreg.conceptcatalogue.storage.SqlStore
 import no.begrepskatalog.generated.api.CollectionsApi
 import no.begrepskatalog.generated.model.Begrep
 import no.begrepskatalog.generated.model.Kildebeskrivelse

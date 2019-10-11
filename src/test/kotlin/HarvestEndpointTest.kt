@@ -1,4 +1,4 @@
-package no.begrepskatalog.conceptregistration
+package no.brreg.conceptcatalogue
 
 import com.nhaarman.mockitokotlin2.mock
 import no.begrepskatalog.generated.model.Virksomhet

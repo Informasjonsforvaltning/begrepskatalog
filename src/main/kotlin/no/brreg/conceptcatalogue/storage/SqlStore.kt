@@ -1,4 +1,4 @@
-package no.begrepskatalog.conceptregistration.storage
+package no.brreg.conceptcatalogue.storage
 
 import no.begrepskatalog.generated.model.*
 import org.slf4j.Logger

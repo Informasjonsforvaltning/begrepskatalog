@@ -1,9 +1,9 @@
-package no.begrepskatalog.conceptregistration
+package no.brreg.conceptcatalogue
 
 import com.nhaarman.mockitokotlin2.*
-import no.begrepskatalog.conceptregistration.security.FdkPermissions
-import no.begrepskatalog.conceptregistration.storage.SqlStore
-import no.begrepskatalog.conceptregistration.utils.patchBegrep
+import no.brreg.conceptcatalogue.security.FdkPermissions
+import no.brreg.conceptcatalogue.storage.SqlStore
+import no.brreg.conceptcatalogue.utils.patchBegrep
 import no.begrepskatalog.generated.model.*
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
