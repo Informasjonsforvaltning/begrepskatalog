@@ -1,10 +1,10 @@
-package no.begrepskatalog.conceptregistration
+package no.brreg.conceptcatalogue
 
 import io.swagger.annotations.ApiParam
-import no.begrepskatalog.conceptregistration.security.FdkPermissions
-import no.begrepskatalog.conceptregistration.storage.SqlStore
-import no.begrepskatalog.conceptregistration.utils.patchBegrep
-import no.begrepskatalog.conceptregistration.validation.isValidBegrep
+import no.brreg.conceptcatalogue.security.FdkPermissions
+import no.brreg.conceptcatalogue.storage.SqlStore
+import no.brreg.conceptcatalogue.utils.patchBegrep
+import no.brreg.conceptcatalogue.validation.isValidBegrep
 import no.begrepskatalog.generated.api.BegreperApi
 import no.begrepskatalog.generated.model.Begrep
 import no.begrepskatalog.generated.model.Endringslogelement

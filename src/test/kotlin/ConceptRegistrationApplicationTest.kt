@@ -1,7 +1,7 @@
-package no.begrepskatalog.conceptregistration
+package no.brreg.conceptcatalogue
 
-import no.begrepskatalog.conceptregistration.storage.SqlStore
-import no.begrepskatalog.conceptregistration.utils.patchBegrep
+import no.brreg.conceptcatalogue.storage.SqlStore
+import no.brreg.conceptcatalogue.utils.patchBegrep
 import no.begrepskatalog.generated.model.*
 import org.junit.Assert.*
 import org.junit.Test

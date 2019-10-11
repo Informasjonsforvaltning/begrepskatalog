@@ -1,4 +1,4 @@
-package no.begrepskatalog.conceptregistration.storage;
+package no.brreg.conceptcatalogue.storage;
 
 import liquibase.Contexts;
 import liquibase.LabelExpression;

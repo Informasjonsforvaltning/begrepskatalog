@@ -1,12 +1,11 @@
-.envrc
+!.mvn/wrapper/maven-wrapper.jar
 
-# IDE files
-*.iml
-.DS_Store
+target
+
+### IntelliJ IDEA ###
 .idea
+*.iws
+*.iml
+*.ipr
 
-# compilation targets
 node_modules
-
-# Dist
-dist

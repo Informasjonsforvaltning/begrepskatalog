@@ -1,4 +1,4 @@
-package no.begrepskatalog.conceptregistration.security;
+package no.brreg.conceptcatalogue.security;
 
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
