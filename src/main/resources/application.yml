@@ -6,6 +6,8 @@ spring:
     url: ${FDK_SQL_JDBC_CONNECTION:jdbc:postgresql://localhost:5432/postgres?currentSchema=conceptregistration}
     username: ${FDK_SQL_USERNAME}
     password: ${FDK_SQL_PASSWORD}
+  data.mongodb.database: concept-catalogue
+  data.mongodb.uri: mongodb://${MONGO_USERNAME:admin}:${MONGO_PASSWORD:admin}@${MONGO_HOST:mongodb:27017}/?authSource=admin&authMechanism=SCRAM-SHA-1
 application:
   # todo In default section we have prod conf. this looks like dev value here
   baseURL: https://registrering-begrep.ut1.fellesdatakatalog.brreg.no/
@@ -19,9 +21,7 @@ security:
 
 spring:
   profiles: develop,unit-integration
-  datasource:
-    username: postgres
-    password: password
+  data.mongodb.uri: mongodb://${MONGO_USERNAME:admin}:${MONGO_PASSWORD:admin}@${MONGO_HOST:localhost:27017}/?authSource=admin&authMechanism=SCRAM-SHA-1
 server:
   port: 8201
 

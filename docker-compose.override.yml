@@ -21,6 +21,9 @@ services:
       - FDK_SQL_JDBC_CONNECTION=jdbc:postgresql://postgres:5432/postgres?currentSchema=conceptRegistration
       - FDK_SQL_USERNAME=postgres
       - FDK_SQL_PASSWORD=password
+      - MONGO_USERNAME=admin
+      - MONGO_PASSWORD=admin
+      - MONGO_HOST=mongodb:27017
       - SSO_HOST
       - LOG_LEVEL=DEBUG
 

@@ -1,15 +1,15 @@
 package no.brreg.conceptcatalogue
 
 import io.swagger.annotations.ApiParam
-import no.brreg.conceptcatalogue.security.FdkPermissions
-import no.brreg.conceptcatalogue.storage.SqlStore
-import no.brreg.conceptcatalogue.utils.patchBegrep
-import no.brreg.conceptcatalogue.validation.isValidBegrep
 import no.begrepskatalog.generated.api.BegreperApi
 import no.begrepskatalog.generated.model.Begrep
 import no.begrepskatalog.generated.model.Endringslogelement
 import no.begrepskatalog.generated.model.JsonPatchOperation
 import no.begrepskatalog.generated.model.Status
+import no.brreg.conceptcatalogue.repository.BegrepRepository
+import no.brreg.conceptcatalogue.security.FdkPermissions
+import no.brreg.conceptcatalogue.utils.patchBegrep
+import no.brreg.conceptcatalogue.validation.isValidBegrep
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
@@ -20,25 +20,28 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import java.time.OffsetDateTime
+import java.util.*
 import javax.json.JsonException
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
 private val logger = LoggerFactory.getLogger(BegreperApiImplK::class.java)
+
 @RestController
-class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermissions) : BegreperApi {
+class BegreperApiImplK(val begrepRepository: BegrepRepository, val fdkPermissions: FdkPermissions) : BegreperApi {
 
     @Value("\${application.baseURL}")
     lateinit var baseURL: String
 
-    override fun getBegrep(httpServletRequest: HttpServletRequest?, @PathVariable orgnumber: String?, status: Status?): ResponseEntity<MutableList<Begrep>> {
+    override fun getBegrep(httpServletRequest: HttpServletRequest?, @PathVariable orgnumber: String?, status: Status?): ResponseEntity<List<Begrep>> {
         logger.info("Get begrep $orgnumber")
+        //todo generate accessible organisation list filter
+        //todo generate status filter or remove from spec
+
         if (orgnumber != null && fdkPermissions.hasPermission(orgnumber, "publisher", "admin")) {
-            return ResponseEntity.ok(sqlStore.getBegrepByCompany(orgnumber, status))
-        } else {
-            //todo show list for all publishers  the user has access to
-            return ResponseEntity.ok(mutableListOf())
+            return ResponseEntity.ok(begrepRepository.getBegrepByAnsvarligVirksomhetId(orgnumber))
         }
+        return ResponseEntity.ok(mutableListOf())
     }
 
     @GetMapping("/ping")
@@ -46,35 +49,26 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
             ResponseEntity.ok().build()
 
     @GetMapping("/ready")
-    fun ready(): ResponseEntity<String>  {
-        if (sqlStore.ready()) {
-            return ResponseEntity.ok().build()
-        } else {
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body("Not Ready")
-        }
-    }
+    fun ready(): ResponseEntity<Void> =
+            ResponseEntity.ok().build()
+
 
     override fun createBegrep(httpServletRequest: HttpServletRequest, @ApiParam(value = "", required = true) @Valid @RequestBody begrep: Begrep): ResponseEntity<Void> {
-
-        begrep.id = null //We are the authority that provides ids
-        begrep.updateLastChangedAndByWhom()
 
         if (!fdkPermissions.hasPermission(begrep?.ansvarligVirksomhet?.id, "publisher", "admin")) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
-        return sqlStore.saveBegrep(begrep)
-                ?.let {
-                    val headers = HttpHeaders()
-                    val urlForAccessingThisBegrepsRegistration = baseURL + it.ansvarligVirksomhet.id + "/" + it.id
-                    headers.add(HttpHeaders.LOCATION, urlForAccessingThisBegrepsRegistration)
-                    headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.LOCATION)
-                    ResponseEntity<Void>(headers, HttpStatus.CREATED)
-                }
-                ?: let {
-                    logger.info("Failed to store begrep. Reason should be in another log line.")
-                    ResponseEntity<Void>(HttpStatus.CONFLICT)
-                }
+        var newBegrep: Begrep = begrep;
+        newBegrep.id = UUID.randomUUID().toString()
+
+        begrepRepository.insert(newBegrep);
+
+        val headers = HttpHeaders()
+        //todo there must be a better way to build path
+        headers.add(HttpHeaders.LOCATION, httpServletRequest.requestURI.removeSuffix("/") + "/" + newBegrep.id)
+        headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.LOCATION)
+        return ResponseEntity<Void>(headers, HttpStatus.CREATED)
     }
 
     override fun setBegrepById(httpServletRequest: HttpServletRequest?, id: String?, jsonPatchOperations: List<JsonPatchOperation>?, validate: Boolean?): ResponseEntity<Begrep> {
@@ -86,23 +80,31 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
             throw RuntimeException("Attempt to PATCH begrep with no changes provided. Id provided was $id")
         }
 
-        if (!sqlStore.begrepExists(id)) {
-            throw RuntimeException("Attempt to PUT begrep that does not already exist. Begrep id $id")
-        }
         //Get the begrep, and just update
-        var storedBegrep = sqlStore.getBegrepById(id)
+        val storedBegrep = begrepRepository.getBegrepById(id)
+                ?: throw RuntimeException("Attempt to PATCH begrep that does not already exist. Begrep id $id")
 
-        if (!fdkPermissions.hasPermission(storedBegrep?.ansvarligVirksomhet?.id, "publisher", "admin")) {
+        if (!fdkPermissions.hasPermission(storedBegrep.ansvarligVirksomhet?.id, "publisher", "admin")) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
-        if (storedBegrep == null) {
-            throw java.lang.RuntimeException("Attempt to PATCH begrep with id $id, that does not exist")
-        }
-
-        var patchedBegrep: Begrep?
         try {
-            patchedBegrep = patchBegrep(storedBegrep, jsonPatchOperations)
+            val patchedBegrep = patchBegrep(storedBegrep, jsonPatchOperations)
+
+            //override any updates on sensitive fields
+            patchedBegrep.id = storedBegrep.id
+            patchedBegrep.ansvarligVirksomhet = storedBegrep.ansvarligVirksomhet
+
+            if (patchedBegrep.status != Status.UTKAST && !isValidBegrep(patchedBegrep)) {
+                logger.info("Begrep $patchedBegrep.id has not passed validation for non draft begrep and has not been saved ")
+
+                return ResponseEntity(HttpStatus.BAD_REQUEST)
+            }
+
+            begrepRepository.save(patchedBegrep)
+
+            return ResponseEntity.ok(patchedBegrep)
+
         } catch (exception: Exception) {
             when (exception) {
                 is JsonException, is IllegalArgumentException -> throw RuntimeException("Invalid patch operation. Begrep id $id")
@@ -110,31 +112,17 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
             }
         }
 
-        patchedBegrep.updateLastChangedAndByWhom()
-
-        if (patchedBegrep.status != Status.UTKAST && !isValidBegrep(patchedBegrep)) {
-            logger.info("Begrep $patchedBegrep.id has not passed validation for non draft begrep and has not been saved ")
-            return ResponseEntity(HttpStatus.CONFLICT)
-        }
-
-        sqlStore.saveBegrep(patchedBegrep)
-
-        return ResponseEntity.ok(patchedBegrep)
     }
 
     override fun getBegrepById(httpServletRequest: HttpServletRequest, @ApiParam(value = "id", required = true) @PathVariable("id") id: String): ResponseEntity<Begrep> {
 
-        val begrep = sqlStore.getBegrepById(id)
+        val begrep = begrepRepository.getBegrepById(id)
 
         if (!fdkPermissions.hasPermission(begrep?.ansvarligVirksomhet?.id, "publisher", "admin")) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
-        return if (begrep != null) {
-            ResponseEntity.ok(begrep)
-        } else {
-            ResponseEntity(HttpStatus.NOT_FOUND)
-        }
+        return begrep?.let { ResponseEntity.ok(it) } ?: ResponseEntity(HttpStatus.NOT_FOUND)
     }
 
     private fun Begrep.updateLastChangedAndByWhom() {
@@ -149,26 +137,26 @@ class BegreperApiImplK(val sqlStore: SqlStore, val fdkPermissions: FdkPermission
 
     override fun deleteBegrepById(httpServletRequest: HttpServletRequest, @ApiParam(value = "id", required = true) @PathVariable("id") id: String): ResponseEntity<Void> {
 
+        val begrep = begrepRepository.getBegrepById(id)
+
         //Validate that begrep exists
-        if (!sqlStore.begrepExists(id)) {
+        if (begrep == null) {
             logger.info("Request to delete non-existing begrep, id $id ignored")
             return ResponseEntity(HttpStatus.NOT_FOUND)
         }
 
-        //Validate that begrep is NOT published
-        val begrep = sqlStore.getBegrepById(id)
-
-        if (!fdkPermissions.hasPermission(begrep?.ansvarligVirksomhet?.id, "publisher", "admin")) {
+        if (!fdkPermissions.hasPermission(begrep.ansvarligVirksomhet?.id, "publisher", "admin")) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
+        //Validate that begrep is NOT published
         if (begrep?.status == Status.PUBLISERT) {
             logger.warn("Attempt to delete PUBLISHED begrep $id ignored")
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }
 
         logger.info("Deleting begrep id $id organisation ${begrep?.ansvarligVirksomhet?.id}")
-        sqlStore.deleteBegrepById(id)
+        begrepRepository.removeBegrepById(begrep.id)
 
         return ResponseEntity(HttpStatus.OK)
     }
