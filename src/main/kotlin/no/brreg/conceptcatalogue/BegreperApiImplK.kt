@@ -49,9 +49,15 @@ class BegreperApiImplK(val begrepRepository: BegrepRepository, val fdkPermission
             ResponseEntity.ok().build()
 
     @GetMapping("/ready")
-    fun ready(): ResponseEntity<Void> =
-            ResponseEntity.ok().build()
-
+    fun ready(): ResponseEntity<Void> {
+        try {
+            begrepRepository.count()
+            return ResponseEntity.ok().build()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build()
+    }
 
     override fun createBegrep(httpServletRequest: HttpServletRequest, @ApiParam(value = "", required = true) @Valid @RequestBody begrep: Begrep): ResponseEntity<Void> {
 
