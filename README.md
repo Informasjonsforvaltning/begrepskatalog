@@ -4,7 +4,7 @@ Backend for the concept-registration.
 ### Run:
 
 ```
-mvn install
+mvn clean install
 
 docker-compose up -d
 
