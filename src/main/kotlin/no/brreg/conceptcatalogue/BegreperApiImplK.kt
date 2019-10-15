@@ -68,6 +68,8 @@ class BegreperApiImplK(val begrepRepository: BegrepRepository, val fdkPermission
         var newBegrep: Begrep = begrep;
         newBegrep.id = UUID.randomUUID().toString()
 
+        newBegrep.updateLastChangedAndByWhom()
+
         begrepRepository.insert(newBegrep);
 
         val headers = HttpHeaders()
@@ -100,6 +102,8 @@ class BegreperApiImplK(val begrepRepository: BegrepRepository, val fdkPermission
             //override any updates on sensitive fields
             patchedBegrep.id = storedBegrep.id
             patchedBegrep.ansvarligVirksomhet = storedBegrep.ansvarligVirksomhet
+
+            patchedBegrep.updateLastChangedAndByWhom()
 
             if (patchedBegrep.status != Status.UTKAST && !isValidBegrep(patchedBegrep)) {
                 logger.info("Begrep $patchedBegrep.id has not passed validation for non draft begrep and has not been saved ")
