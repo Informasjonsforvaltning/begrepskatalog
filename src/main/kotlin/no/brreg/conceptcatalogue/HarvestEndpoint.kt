@@ -110,7 +110,7 @@ class HarvestEndpoint(val begrepRepository: BegrepRepository, val mongoOperation
                 .identifier(begrep.id)
                 .publisher(begrep.ansvarligVirksomhet.id)
                 .prefLabelBuilder()
-                .label(begrep.anbefaltTerm?.let { it.toString() } ?: "", "no")
+                .label(begrep.anbefaltTerm?.let { it.toString() } ?: "", "nb")
                 .build()
                 .example(begrep.eksempel, "nb")
                 .subject(begrep.fagområde, "nb")
