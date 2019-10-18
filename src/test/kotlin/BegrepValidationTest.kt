@@ -105,22 +105,22 @@ class BegrepValidationTest {
         begrep.anbefaltTerm = Term().apply {
             navn = mapOf("kode" to "tekst", null to null)
         }
-        Assert.assertFalse(isValidBegrep(begrep))
+        Assert.assertTrue(isValidBegrep(begrep))
 
         begrep.anbefaltTerm = Term().apply {
             navn = mapOf("kode" to "tekst", "kode2" to null)
         }
-        Assert.assertFalse(isValidBegrep(begrep))
+        Assert.assertTrue(isValidBegrep(begrep))
 
         begrep.anbefaltTerm = Term().apply {
             navn = mapOf("kode" to "tekst", "kode2" to "")
         }
-        Assert.assertFalse(isValidBegrep(begrep))
+        Assert.assertTrue(isValidBegrep(begrep))
 
         begrep.anbefaltTerm = Term().apply {
             navn = mapOf("kode" to "tekst", "kode2" to "   ")
         }
-        Assert.assertFalse(isValidBegrep(begrep))
+        Assert.assertTrue(isValidBegrep(begrep))
 
         begrep.anbefaltTerm = Term().apply {
             navn = mapOf("kode" to "tekst", "kode2" to "tekst2")
@@ -181,22 +181,22 @@ class BegrepValidationTest {
         begrep.definisjon = Definisjon().apply {
             tekst = mapOf("kode1" to "tekst1", null to null)
         }
-        Assert.assertFalse(isValidBegrep(begrep))
+        Assert.assertTrue(isValidBegrep(begrep))
 
         begrep.definisjon = Definisjon().apply {
             tekst = mapOf("kode1" to "tekst1", "kode2" to null)
         }
-        Assert.assertFalse(isValidBegrep(begrep))
+        Assert.assertTrue(isValidBegrep(begrep))
 
         begrep.definisjon = Definisjon().apply {
             tekst = mapOf("kode1" to "tekst1", "kode2" to "")
         }
-        Assert.assertFalse(isValidBegrep(begrep))
+        Assert.assertTrue(isValidBegrep(begrep))
 
         begrep.definisjon = Definisjon().apply {
             tekst = mapOf("kode1" to "tekst1", "kode2" to "   ")
         }
-        Assert.assertFalse(isValidBegrep(begrep))
+        Assert.assertTrue(isValidBegrep(begrep))
 
         begrep.definisjon = Definisjon().apply {
             tekst = mapOf("kode1" to "tekst1", "kode2" to "tekst2")

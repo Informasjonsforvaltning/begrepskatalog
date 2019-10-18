@@ -39,6 +39,6 @@ private fun isValidOrganisationNumber(organisationNumber: String): Boolean {
 }
 
 private fun isValidListOfTranslations(translations: Map<String, String>): Boolean = when {
-    translations is Map<String, String> && !translations.values.stream().allMatch { it is String && !it.isNullOrBlank() } -> false
+    translations is Map<String, String> && !translations.values.stream().anyMatch { it is String && !it.isNullOrBlank() } -> false
     else -> true
 }
