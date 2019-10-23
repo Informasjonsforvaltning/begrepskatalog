@@ -4,6 +4,16 @@ logging:
 spring:
   data.mongodb.database: concept-catalogue
   data.mongodb.uri: mongodb://${MONGO_USERNAME:admin}:${MONGO_PASSWORD:admin}@${MONGO_HOST:mongodb:27017}/?authSource=admin&authMechanism=SCRAM-SHA-1&serverSelectionTimeoutMS=2000
+
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: ${RABBIT_USERNAME}
+    password: ${RABBIT_PASSWORD}
+    template:
+      routing-key: 'ConceptPublisher.HarvestTrigger'
+      exchange: 'harvests'
+
 application:
   # todo In default section we have prod conf. this looks like dev value here
   baseURL: https://registrering-begrep.ut1.fellesdatakatalog.brreg.no/
@@ -18,6 +28,15 @@ security:
 spring:
   profiles: develop,unit-integration
   data.mongodb.uri: mongodb://${MONGO_USERNAME:admin}:${MONGO_PASSWORD:admin}@${MONGO_HOST:localhost:27017}/?authSource=admin&authMechanism=SCRAM-SHA-1&serverSelectionTimeoutMS=2000
+
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: admin
+    password: admin
+    template:
+      routing-key: 'ConceptPublisher.HarvestTrigger'
+      exchange: 'harvests'
 server:
   port: 8201
 

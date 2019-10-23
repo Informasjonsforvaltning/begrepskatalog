@@ -26,6 +26,12 @@
 
     <dependencies>
 
+        <!-- AMQP Client -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
         <!--https://stackoverflow.com/questions/51916221/javax-xml-bind-jaxbexception-implementation-of-jaxb-api-has-not-been-found-on-mo-->
         <dependency>
             <groupId>javax.xml.bind</groupId>
