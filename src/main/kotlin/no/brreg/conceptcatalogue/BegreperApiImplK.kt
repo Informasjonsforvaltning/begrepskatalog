@@ -8,9 +8,11 @@ import no.begrepskatalog.generated.model.JsonPatchOperation
 import no.begrepskatalog.generated.model.Status
 import no.brreg.conceptcatalogue.repository.BegrepRepository
 import no.brreg.conceptcatalogue.security.FdkPermissions
+import no.brreg.conceptcatalogue.service.ConceptPublisher
 import no.brreg.conceptcatalogue.utils.patchBegrep
 import no.brreg.conceptcatalogue.validation.isValidBegrep
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -32,6 +34,9 @@ class BegreperApiImplK(val begrepRepository: BegrepRepository, val fdkPermission
 
     @Value("\${application.baseURL}")
     lateinit var baseURL: String
+
+    @Autowired
+    lateinit var rabbitmqPublisher: ConceptPublisher
 
     override fun getBegrep(httpServletRequest: HttpServletRequest?, @PathVariable orgnumber: String?, status: Status?): ResponseEntity<List<Begrep>> {
         logger.info("Get begrep $orgnumber")
@@ -112,6 +117,10 @@ class BegreperApiImplK(val begrepRepository: BegrepRepository, val fdkPermission
             }
 
             begrepRepository.save(patchedBegrep)
+
+            if (patchedBegrep.status == Status.PUBLISERT) {
+                rabbitmqPublisher.send(patchedBegrep.ansvarligVirksomhet.id)
+            }
 
             return ResponseEntity.ok(patchedBegrep)
 
