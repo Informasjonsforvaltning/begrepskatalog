@@ -226,11 +226,6 @@ class BegrepValidationTest {
         }
         Assert.assertFalse(isValidBegrep(begrep))
 
-        begrep.ansvarligVirksomhet = createTestVirksomhet().apply {
-            id = "123456789"
-        }
-        Assert.assertFalse(isValidBegrep(begrep))
-
         begrep.ansvarligVirksomhet = createTestVirksomhet()
         Assert.assertTrue(isValidBegrep(begrep))
 
