@@ -157,29 +157,23 @@ components:
           anbefaltTerm:
             $ref: "#/components/schemas/Term"
           tillattTerm:
-            type: array
-            items:
-              type: string
+            $ref: "#/components/schemas/TekstMedSpraakKode"
           frarådetTerm:
-            type: array
-            items:
-              type: string
+            $ref: "#/components/schemas/TekstMedSpraakKode"
           definisjon:
             $ref: "#/components/schemas/Definisjon"
           kildebeskrivelse:
             $ref: "#/components/schemas/Kildebeskrivelse"
           merknad:
-            type: string
+            $ref: '#/components/schemas/TekstMedSpraakKode'
           ansvarligVirksomhet:
             $ref: "#/components/schemas/Virksomhet"
           eksempel:
-            type: string
+            $ref: '#/components/schemas/TekstMedSpraakKode'
           fagområde:
-            type: string
+            $ref: '#/components/schemas/TekstMedSpraakKode'
           bruksområde:
-            type: array
-            items:
-              type: string
+            $ref: '#/components/schemas/TekstMedSpraakKode'
           omfang:
             $ref: "#/components/schemas/URITekst"
           kontaktpunkt:
@@ -309,8 +303,7 @@ components:
     TekstMedSpraakKode:
       description: A generic object to hold multilanguage texts, that has language code (according to ISO 639-1) as keys
       type: object
-      additionalProperties:
-        type: string
+      additionalProperties: {}
   securitySchemes:
     bearerAuth:            # arbitrary name for the security scheme
       type: http

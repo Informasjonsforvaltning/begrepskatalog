@@ -11,11 +11,11 @@ fun isValidBegrep(begrep: Begrep): Boolean = when {
     begrep.anbefaltTerm == null -> false
     begrep.anbefaltTerm.navn === null -> false
     begrep.anbefaltTerm.navn.isEmpty() -> false
-    !isValidListOfTranslations(begrep.anbefaltTerm.navn) -> false
+    !isValidTranslationsMap(begrep.anbefaltTerm.navn) -> false
     begrep.definisjon == null -> false
     begrep.definisjon.tekst === null -> false
     begrep.definisjon.tekst.isEmpty() -> false
-    !isValidListOfTranslations(begrep.definisjon.tekst) -> false
+    !isValidTranslationsMap(begrep.definisjon.tekst) -> false
     begrep.ansvarligVirksomhet == null -> false
     !begrep.ansvarligVirksomhet.isValid() -> false
     else -> true
@@ -27,7 +27,7 @@ private fun Virksomhet.isValid(): Boolean = when {
     else -> true
 }
 
-private fun isValidListOfTranslations(translations: Map<String, String>): Boolean = when {
-    translations is Map<String, String> && !translations.values.stream().anyMatch { it is String && !it.isNullOrBlank() } -> false
+private fun isValidTranslationsMap(translations: Map<String, Any>): Boolean = when {
+    translations is Map<String, Any> && !translations.values.stream().anyMatch { it is String && !it.isNullOrBlank() } -> false
     else -> true
 }

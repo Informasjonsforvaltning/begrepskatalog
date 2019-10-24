@@ -149,10 +149,10 @@ class ControllerTest {
                 kilde.uri = "www.skatteetaten.noA"
                 kildebeskrivelse.kilde.add(kilde)
                 kildebeskrivelse.forholdTilKilde = Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE
-                merknad = "testbegrepA"
-                eksempel = "bergenA"
-                fagområde = "fødeA"
-                bruksområde = listOf("medisinA")
+                merknad = mapOf("nb" to "testbegrepA")
+                eksempel = mapOf("nb" to "bergenA")
+                fagområde = mapOf("nb" to "fødeA")
+                bruksområde = mapOf("nb" to listOf("medisinA"))
                 omfang = omfangA()
                 kontaktpunkt = pkunktA()
                 gyldigFom = LocalDate.now()
@@ -178,10 +178,10 @@ class ControllerTest {
                 kilde.uri = "www.skatteetaten.noB"
                 kildebeskrivelse.kilde.add(kilde)
                 kildebeskrivelse.forholdTilKilde = Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT
-                merknad = "testbegrepB"
-                eksempel = "bergenB"
-                fagområde = "fødeB"
-                bruksområde = listOf("medisinB")
+                merknad = mapOf("nb" to "testbegrepB")
+                eksempel = mapOf("nb" to "bergenB")
+                fagområde = mapOf("nb" to "fødeB")
+                bruksområde = mapOf("nb" to listOf("medisinB"))
                 omfang = omfangB()
                 kontaktpunkt = pkunktB()
                 gyldigFom = LocalDate.now().plusMonths(1)
@@ -219,22 +219,22 @@ class ControllerTest {
                 },
                 JsonPatchOperation().apply {
                     op = JsonPatchOperation.OpEnum.REPLACE
-                    path = "/merknad"
+                    path = "/merknad/nb"
                     value = "testbegrepB"
                 },
                 JsonPatchOperation().apply {
                     op = JsonPatchOperation.OpEnum.REPLACE
-                    path = "/eksempel"
+                    path = "/eksempel/nb"
                     value = "bergenB"
                 },
                 JsonPatchOperation().apply {
                     op = JsonPatchOperation.OpEnum.REPLACE
-                    path = "/fagområde"
+                    path = "/fagområde/nb"
                     value = "fødeB"
                 },
                 JsonPatchOperation().apply {
                     op = JsonPatchOperation.OpEnum.REPLACE
-                    path = "/bruksområde/0"
+                    path = "/bruksområde/nb/0"
                     value = "medisinB"
                 },
                 JsonPatchOperation().apply {
