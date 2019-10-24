@@ -30,13 +30,14 @@ import javax.validation.Valid
 private val logger = LoggerFactory.getLogger(BegreperApiImplK::class.java)
 
 @RestController
-class BegreperApiImplK(val begrepRepository: BegrepRepository, val fdkPermissions: FdkPermissions) : BegreperApi {
+class BegreperApiImplK(
+        val begrepRepository: BegrepRepository,
+        val fdkPermissions: FdkPermissions,
+        val rabbitmqPublisher: ConceptPublisher
+) : BegreperApi {
 
     @Value("\${application.baseURL}")
     lateinit var baseURL: String
-
-    @Autowired
-    lateinit var rabbitmqPublisher: ConceptPublisher
 
     override fun getBegrep(httpServletRequest: HttpServletRequest?, @PathVariable orgnumber: String?, status: Status?): ResponseEntity<List<Begrep>> {
         logger.info("Get begrep $orgnumber")

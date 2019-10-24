@@ -1,12 +1,10 @@
 package no.brreg.conceptcatalogue
 
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.whenever
+import com.nhaarman.mockitokotlin2.*
 import no.begrepskatalog.generated.model.*
 import no.brreg.conceptcatalogue.repository.BegrepRepository
 import no.brreg.conceptcatalogue.security.FdkPermissions
+import no.brreg.conceptcatalogue.service.ConceptPublisher
 import no.brreg.conceptcatalogue.utils.patchBegrep
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -27,8 +25,9 @@ class ControllerTest {
         whenever(httpServletRequestMock.requestURI).thenReturn(postRequestUri)
 
         val fdkPermissionsMock: FdkPermissions = prepareFdkPermissionsMock()
+        val rabbitPublisherMock: ConceptPublisher = prepareRabbitMock()
 
-        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, fdkPermissionsMock)
+        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, fdkPermissionsMock, rabbitPublisherMock)
         begreperApiImplK.baseURL = "https://registrering-begrep.ut1.fellesdatakatalog.brreg.no"
         val begrep = Begrep()
         begrep.ansvarligVirksomhet = createTestVirksomhet()
@@ -51,8 +50,9 @@ class ControllerTest {
 
         val emptyBegrep = Begrep()
 
+        val rabbitPublisherMock: ConceptPublisher = prepareRabbitMock()
         val httpServletRequestMock: HttpServletRequest = mock()
-        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, fdkPermissionsMock)
+        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, fdkPermissionsMock, rabbitPublisherMock)
         val retValue = begreperApiImplK.setBegrepById(httpServletRequestMock, "esf3", listOf(), true)
     }
 
@@ -66,7 +66,8 @@ class ControllerTest {
         someBegrep.ansvarligVirksomhet = null
 
         val httpServletRequestMock: HttpServletRequest = mock()
-        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, fdkPermissionsMock)
+        val rabbitPublisherMock: ConceptPublisher = prepareRabbitMock()
+        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, fdkPermissionsMock, rabbitPublisherMock)
         val retValue = begreperApiImplK.setBegrepById(httpServletRequestMock, "esf3", listOf(), true)
     }
 
@@ -78,7 +79,8 @@ class ControllerTest {
         val fdkPermissionsMock: FdkPermissions = prepareFdkPermissionsMock()
 
         val httpServletRequestMock: HttpServletRequest = mock()
-        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, fdkPermissionsMock)
+        val rabbitPublisherMock: ConceptPublisher = prepareRabbitMock()
+        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, fdkPermissionsMock, rabbitPublisherMock)
         val retValue = begreperApiImplK.deleteBegrepById(httpServletRequestMock, testBegrep.id)
 
         verify(begrepRepositoryMock).getBegrepById(testBegrep.id)
@@ -90,7 +92,8 @@ class ControllerTest {
         val begrepRepositoryMock: BegrepRepository = prepareBegrepRepositoryMock()
         val fdkPermissionsMock: FdkPermissions = prepareFdkPermissionsMock()
 
-        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, fdkPermissionsMock)
+        val rabbitPublisherMock: ConceptPublisher = prepareRabbitMock()
+        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, fdkPermissionsMock, rabbitPublisherMock)
         assert(begreperApiImplK.ping().statusCode == HttpStatus.OK)
         assert(begreperApiImplK.ready().statusCode == HttpStatus.OK)
     }
@@ -328,5 +331,11 @@ class ControllerTest {
         whenever(fdkPermissionsMock.hasPermission(any(), any(), any())).thenReturn(true)
 
         return fdkPermissionsMock
+    }
+
+    private fun prepareRabbitMock(virksomhet: Virksomhet = createTestVirksomhet()): ConceptPublisher {
+        val conceptPublisher: ConceptPublisher = mock {}
+        whenever(conceptPublisher.send(virksomhet.id)).then { doNothing() }
+        return conceptPublisher
     }
 }
