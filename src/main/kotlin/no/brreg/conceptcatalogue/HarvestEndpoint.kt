@@ -7,7 +7,6 @@ import no.begrepskatalog.generated.model.Status
 import no.brreg.conceptcatalogue.repository.BegrepRepository
 import no.difi.skos_ap_no.concept.builder.Conceptcollection.CollectionBuilder
 import no.difi.skos_ap_no.concept.builder.ModelBuilder
-import no.difi.skos_ap_no.concept.builder.generic.AudienceType
 import no.difi.skos_ap_no.concept.builder.generic.SourceType
 import org.apache.jena.rdf.model.Resource
 import org.slf4j.LoggerFactory
@@ -38,6 +37,7 @@ class HarvestEndpoint(val begrepRepository: BegrepRepository, val mongoOperation
         }
 
         val writer = StringWriter()
+        // TODO: add test for Model object
         modelBuilder.build().write(writer, "TURTLE")
         println(writer.buffer)
 
@@ -95,12 +95,15 @@ class HarvestEndpoint(val begrepRepository: BegrepRepository, val mongoOperation
             sourceDescriptionBuilder.build()
         }
 
-        begrep.definisjon.tekst.forEach { definitionBuilder = definitionBuilder.text(it.value, it.key) }
+        begrep.definisjon.tekst.forEach {
+            handleMultilingualFieldEntry(it) { definisjon: String -> definitionBuilder = definitionBuilder.text(definisjon, it.key) }
+        }
 
-        definitionBuilder
-                .audience(AudienceType.Audience.Public)
-                .scopeNote(begrep.merknad ?: "", "nb")
-                .scopeBuilder()
+        begrep.merknad?.forEach {
+            handleMultilingualFieldEntry(it) { merknad: String -> definitionBuilder = definitionBuilder.scopeNote(merknad, it.key) }
+        }
+
+        conceptBuilder = definitionBuilder.scopeBuilder()
                 .label(begrep.omfang?.tekst ?: "", "nb")
                 .seeAlso(begrep.omfang?.uri)
                 .build()
@@ -112,28 +115,53 @@ class HarvestEndpoint(val begrepRepository: BegrepRepository, val mongoOperation
                 .publisher(begrep.ansvarligVirksomhet.id)
                 .prefLabelBuilder()
 
-        begrep.anbefaltTerm.navn.forEach { prefLabelBuilder = prefLabelBuilder.label(it.value, it.key) }
+        begrep.anbefaltTerm.navn.forEach {
+            handleMultilingualFieldEntry(it) { anbefaltTerm: String -> prefLabelBuilder = prefLabelBuilder.label(anbefaltTerm, it.key) }
+        }
 
-        prefLabelBuilder.build()
-                .example(begrep.eksempel, "nb")
-                .subject(begrep.fagområde, "nb")
-                .contactPointBuilder()
+        conceptBuilder = prefLabelBuilder.build()
+
+        begrep.eksempel?.forEach {
+            handleMultilingualFieldEntry(it) { eksempel: String -> conceptBuilder = conceptBuilder.example(eksempel, it.key) }
+        }
+
+        begrep.fagområde?.forEach {
+            handleMultilingualFieldEntry(it) { fagområde: String -> conceptBuilder = conceptBuilder.subject(fagområde, it.key) }
+        }
+
+        conceptBuilder = conceptBuilder.contactPointBuilder()
                 .email(begrep.kontaktpunkt?.harEpost ?: "")
                 .telephone(begrep.kontaktpunkt?.harTelefon ?: "")
                 .build()
 
-
-        begrep.bruksområde.forEach { bruksområde -> conceptBuilder = conceptBuilder.domainOfUse(bruksområde, "nb") }
+        begrep.bruksområde?.forEach {
+            handleMultilingualFieldArrayEntry(it) { bruksområde: String -> conceptBuilder = conceptBuilder.domainOfUse(bruksområde, it.key) }
+        }
 
         var altLabelBuilder = conceptBuilder.altLabelBuilder()
-        begrep.tillattTerm.forEach { tillattTerm -> altLabelBuilder = altLabelBuilder.label(tillattTerm, "nb") }
+        begrep.tillattTerm?.forEach {
+            handleMultilingualFieldArrayEntry(it) { tillattTerm: String -> altLabelBuilder = altLabelBuilder.label(tillattTerm, it.key) }
+        }
         conceptBuilder = altLabelBuilder.build()
 
         var hiddenLabelBuilder = conceptBuilder.hiddenLabelBuilder()
-        begrep.frarådetTerm.forEach { frarådetTerm -> hiddenLabelBuilder = hiddenLabelBuilder.label(frarådetTerm, "nb") }
+        begrep.frarådetTerm?.forEach {
+            handleMultilingualFieldArrayEntry(it) { frarådetTerm: String -> hiddenLabelBuilder = hiddenLabelBuilder.label(frarådetTerm, it.key) }
+        }
         conceptBuilder = hiddenLabelBuilder.build()
 
-
         return conceptBuilder.build().resource
+    }
+
+    private fun handleMultilingualFieldEntry(entry: Map.Entry<String, Any>, callback: (value: String) -> Unit): Unit = when {
+        entry.value is String -> callback(entry.value as String)
+        else -> {
+        }
+    }
+
+    private fun handleMultilingualFieldArrayEntry(entry: Map.Entry<String, Any>, callback: (value: String) -> Unit): Unit = when {
+        entry.value is List<*> -> (entry.value as List<*>).forEach { callback(it as String) }
+        else -> {
+        }
     }
 }

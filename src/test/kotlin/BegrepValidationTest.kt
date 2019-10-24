@@ -11,15 +11,15 @@ class BegrepValidationTest {
     private fun createBegrep(): Begrep {
         return Begrep().apply {
             anbefaltTerm = Term().apply {
-                navn = mapOf("no" to "eplesaft")
+                navn = mapOf("nb" to "eplesaft")
             }
             id = UUID.randomUUID().toString()
             ansvarligVirksomhet = createTestVirksomhet()
-            bruksområde = listOf("Særavgift/Særavgift - Avgift på alkoholfrie drikkevarer")
+            bruksområde = mapOf("nb" to listOf("Særavgift/Særavgift - Avgift på alkoholfrie drikkevarer"))
             definisjon = Definisjon().apply {
-                tekst = mapOf("no" to "saft uten tilsatt sukker som er basert på epler")
+                tekst = mapOf("nb" to "saft uten tilsatt sukker som er basert på epler")
             }
-            eksempel = "DummyEksempel"
+            eksempel = mapOf("nb" to "DummyEksempel")
             status = Status.GODKJENT
             gyldigFom = LocalDate.now()
         }
