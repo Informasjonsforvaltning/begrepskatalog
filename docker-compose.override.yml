@@ -11,5 +11,6 @@ services:
       - MONGO_HOST=mongodb:27017
       - SSO_HOST
       - LOG_LEVEL=DEBUG
+      - LOG_FORMAT=compact
 
 
