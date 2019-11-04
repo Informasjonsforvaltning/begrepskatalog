@@ -43,7 +43,7 @@ class BegreperApiImplK(
         //todo generate accessible organisation list filter
         //todo generate status filter or remove from spec
 
-        if (orgnumber != null && permissionService.hasPermission(orgnumber, "publisher", "admin")) {
+        if (orgnumber != null && permissionService.hasPermission("publisher", orgnumber, "admin")) {
             return ResponseEntity.ok(begrepRepository.getBegrepByAnsvarligVirksomhetId(orgnumber))
         }
         return ResponseEntity.ok(mutableListOf())
@@ -66,7 +66,7 @@ class BegreperApiImplK(
 
     override fun createBegrep(httpServletRequest: HttpServletRequest, @ApiParam(value = "", required = true) @Valid @RequestBody begrep: Begrep): ResponseEntity<Void> {
 
-        if (!permissionService.hasPermission(begrep?.ansvarligVirksomhet?.id, "publisher", "admin")) {
+        if (!permissionService.hasPermission("publisher", begrep?.ansvarligVirksomhet?.id, "admin")) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
@@ -97,7 +97,7 @@ class BegreperApiImplK(
         val storedBegrep = begrepRepository.getBegrepById(id)
                 ?: throw RuntimeException("Attempt to PATCH begrep that does not already exist. Begrep id $id")
 
-        if (!permissionService.hasPermission(storedBegrep.ansvarligVirksomhet?.id, "publisher", "admin")) {
+        if (!permissionService.hasPermission("publisher", storedBegrep.ansvarligVirksomhet?.id, "admin")) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
@@ -137,7 +137,7 @@ class BegreperApiImplK(
 
         val begrep = begrepRepository.getBegrepById(id)
 
-        if (!permissionService.hasPermission(begrep?.ansvarligVirksomhet?.id, "publisher", "admin")) {
+        if (!permissionService.hasPermission("publisher", begrep?.ansvarligVirksomhet?.id, "admin")) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
@@ -164,7 +164,7 @@ class BegreperApiImplK(
             return ResponseEntity(HttpStatus.NOT_FOUND)
         }
 
-        if (!permissionService.hasPermission(begrep.ansvarligVirksomhet?.id, "publisher", "admin")) {
+        if (!permissionService.hasPermission("publisher", begrep.ansvarligVirksomhet?.id, "admin")) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 

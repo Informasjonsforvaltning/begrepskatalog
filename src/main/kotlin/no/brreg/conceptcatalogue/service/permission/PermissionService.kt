@@ -11,7 +11,7 @@ class PermissionService {
         return SecurityContextHolder.getContext().authentication
     }
 
-    fun hasPermission(targetId: String?, targetType: String, permission: String): Boolean {
+    fun hasPermission(targetType: String, targetId: String? = "", permission: String): Boolean {
         val requiredAuthority: SimpleGrantedAuthority = SimpleGrantedAuthority("$targetType:$targetId:$permission");
 
 
