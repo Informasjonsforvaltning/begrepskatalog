@@ -3,7 +3,7 @@ package no.brreg.conceptcatalogue
 import com.nhaarman.mockitokotlin2.*
 import no.begrepskatalog.generated.model.*
 import no.brreg.conceptcatalogue.repository.BegrepRepository
-import no.brreg.conceptcatalogue.security.FdkPermissions
+import no.brreg.conceptcatalogue.service.permission.PermissionService
 import no.brreg.conceptcatalogue.service.ConceptPublisher
 import no.brreg.conceptcatalogue.utils.patchBegrep
 import org.junit.Assert.assertNotNull
@@ -24,10 +24,10 @@ class ControllerTest {
         val postRequestUri = "/begreper"
         whenever(httpServletRequestMock.requestURI).thenReturn(postRequestUri)
 
-        val fdkPermissionsMock: FdkPermissions = prepareFdkPermissionsMock()
+        val permissionServiceMock: PermissionService = prepareFdkPermissionsMock()
         val rabbitPublisherMock: ConceptPublisher = prepareRabbitMock()
 
-        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, fdkPermissionsMock, rabbitPublisherMock)
+        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, permissionServiceMock, rabbitPublisherMock)
         begreperApiImplK.baseURL = "https://registrering-begrep.ut1.fellesdatakatalog.brreg.no"
         val begrep = Begrep()
         begrep.ansvarligVirksomhet = createTestVirksomhet()
@@ -46,13 +46,13 @@ class ControllerTest {
     @Test(expected = RuntimeException::class)
     fun test_validations_begrep_does_not_exist() {
         val begrepRepositoryMock: BegrepRepository = prepareBegrepRepositoryMock()
-        val fdkPermissionsMock: FdkPermissions = prepareFdkPermissionsMock()
+        val permissionServiceMock: PermissionService = prepareFdkPermissionsMock()
 
         val emptyBegrep = Begrep()
 
         val rabbitPublisherMock: ConceptPublisher = prepareRabbitMock()
         val httpServletRequestMock: HttpServletRequest = mock()
-        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, fdkPermissionsMock, rabbitPublisherMock)
+        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, permissionServiceMock, rabbitPublisherMock)
         val retValue = begreperApiImplK.setBegrepById(httpServletRequestMock, "esf3", listOf(), true)
     }
 
@@ -60,14 +60,14 @@ class ControllerTest {
     @Test(expected = RuntimeException::class)
     fun test_validations_begrep_has_not_ansvarligVirksomhet() {
         val begrepRepositoryMock: BegrepRepository = prepareBegrepRepositoryMock()
-        val fdkPermissionsMock: FdkPermissions = prepareFdkPermissionsMock()
+        val permissionServiceMock: PermissionService = prepareFdkPermissionsMock()
 
         val someBegrep = makeBegrep()//Same as mock pretends to save
         someBegrep.ansvarligVirksomhet = null
 
         val httpServletRequestMock: HttpServletRequest = mock()
         val rabbitPublisherMock: ConceptPublisher = prepareRabbitMock()
-        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, fdkPermissionsMock, rabbitPublisherMock)
+        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, permissionServiceMock, rabbitPublisherMock)
         val retValue = begreperApiImplK.setBegrepById(httpServletRequestMock, "esf3", listOf(), true)
     }
 
@@ -76,11 +76,11 @@ class ControllerTest {
         val testBegrep = makeBegrep()
         val begrepRepositoryMock: BegrepRepository = prepareBegrepRepositoryMock(testBegrep)
 
-        val fdkPermissionsMock: FdkPermissions = prepareFdkPermissionsMock()
+        val permissionServiceMock: PermissionService = prepareFdkPermissionsMock()
 
         val httpServletRequestMock: HttpServletRequest = mock()
         val rabbitPublisherMock: ConceptPublisher = prepareRabbitMock()
-        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, fdkPermissionsMock, rabbitPublisherMock)
+        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, permissionServiceMock, rabbitPublisherMock)
         val retValue = begreperApiImplK.deleteBegrepById(httpServletRequestMock, testBegrep.id)
 
         verify(begrepRepositoryMock).getBegrepById(testBegrep.id)
@@ -90,10 +90,10 @@ class ControllerTest {
     @Test
     fun test_liveness_and_readyness() {
         val begrepRepositoryMock: BegrepRepository = prepareBegrepRepositoryMock()
-        val fdkPermissionsMock: FdkPermissions = prepareFdkPermissionsMock()
+        val permissionServiceMock: PermissionService = prepareFdkPermissionsMock()
 
         val rabbitPublisherMock: ConceptPublisher = prepareRabbitMock()
-        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, fdkPermissionsMock, rabbitPublisherMock)
+        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, permissionServiceMock, rabbitPublisherMock)
         assert(begreperApiImplK.ping().statusCode == HttpStatus.OK)
         assert(begreperApiImplK.ready().statusCode == HttpStatus.OK)
     }
@@ -325,12 +325,12 @@ class ControllerTest {
         return begrepRepositoryMock
     }
 
-    private fun prepareFdkPermissionsMock(): FdkPermissions {
-        val fdkPermissionsMock: FdkPermissions = mock {}
+    private fun prepareFdkPermissionsMock(): PermissionService {
+        val permissionServiceMock: PermissionService = mock {}
 
-        whenever(fdkPermissionsMock.hasPermission(any(), any(), any())).thenReturn(true)
+        whenever(permissionServiceMock.hasPermission(any(), any(), any())).thenReturn(true)
 
-        return fdkPermissionsMock
+        return permissionServiceMock
     }
 
     private fun prepareRabbitMock(virksomhet: Virksomhet = createTestVirksomhet()): ConceptPublisher {
