@@ -66,16 +66,16 @@ class BegreperApiImplK(
 
     override fun createBegrep(httpServletRequest: HttpServletRequest, @ApiParam(value = "", required = true) @Valid @RequestBody begrep: Begrep): ResponseEntity<Void> {
 
-        if (!permissionService.hasPermission("publisher", begrep?.ansvarligVirksomhet?.id, "admin")) {
+        if (!permissionService.hasPermission("publisher", begrep.ansvarligVirksomhet?.id, "admin")) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
-        var newBegrep: Begrep = begrep;
+        val newBegrep: Begrep = begrep
         newBegrep.id = UUID.randomUUID().toString()
 
         newBegrep.updateLastChangedAndByWhom()
 
-        begrepRepository.insert(newBegrep);
+        begrepRepository.insert(newBegrep)
 
         val headers = HttpHeaders()
         //todo there must be a better way to build path
@@ -169,12 +169,12 @@ class BegreperApiImplK(
         }
 
         //Validate that begrep is NOT published
-        if (begrep?.status == Status.PUBLISERT) {
+        if (begrep.status == Status.PUBLISERT) {
             logger.warn("Attempt to delete PUBLISHED begrep $id ignored")
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }
 
-        logger.info("Deleting begrep id $id organisation ${begrep?.ansvarligVirksomhet?.id}")
+        logger.info("Deleting begrep id $id organisation ${begrep.ansvarligVirksomhet?.id}")
         begrepRepository.removeBegrepById(begrep.id)
 
         return ResponseEntity(HttpStatus.OK)
