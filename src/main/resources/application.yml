@@ -16,8 +16,7 @@ spring:
       exchange: 'harvests'
 
 application:
-  # todo In default section we have prod conf. this looks like dev value here
-  baseURL: https://registrering-begrep.ut1.fellesdatakatalog.brreg.no/
+  baseURL: ${CONCEPT_CATALOGUE_BASE_URL}
 
 security:
   oauth2:
