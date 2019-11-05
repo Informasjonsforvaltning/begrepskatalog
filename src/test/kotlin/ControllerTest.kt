@@ -328,7 +328,7 @@ class ControllerTest {
     private fun prepareFdkPermissionsMock(): PermissionService {
         val permissionServiceMock: PermissionService = mock {}
 
-        whenever(permissionServiceMock.hasPermission(any(), any(), any())).thenReturn(true)
+        whenever(permissionServiceMock.hasPublisherPermission(any(), any())).thenReturn(true)
 
         return permissionServiceMock
     }
