@@ -72,6 +72,9 @@ class BegreperApiImplK(
         if (!permissionService.hasPublisherPermission(begrep.ansvarligVirksomhet?.id, PublisherPermission.write)) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
+
+        val begrepCount = begrepRepository.countBegrepByAnsvarligVirksomhetId(begrep.ansvarligVirksomhet.id)
+
         val newBegrep: Begrep = begrep
         newBegrep.id = UUID.randomUUID().toString()
         newBegrep.status = Status.UTKAST
@@ -79,6 +82,15 @@ class BegreperApiImplK(
         newBegrep.updateLastChangedAndByWhom()
 
         begrepRepository.insert(newBegrep)
+
+        if (begrepCount == 0L) {
+            logger.info("Adding first entry for ${newBegrep.ansvarligVirksomhet.id} in harvest admin...")
+            val harvestUrl = UriComponentsBuilder
+                    .fromUriString(httpServletRequest.requestURL.toString())
+                    .replacePath("/collections")
+                    .build().toUriString()
+            rabbitmqPublisher.sendNewDataSource(newBegrep.ansvarligVirksomhet.id, harvestUrl)
+        }
 
         val headers = HttpHeaders()
         val locationUri = UriComponentsBuilder
@@ -121,6 +133,7 @@ class BegreperApiImplK(
 
             begrepRepository.save(patchedBegrep)
 
+            // send if concept status is 'Published' or if it became 'Unpublished' (e.g: Published -> Utkast)
             if (patchedBegrep.status == Status.PUBLISERT || storedBegrep.status == Status.PUBLISERT) {
                 rabbitmqPublisher.send(patchedBegrep.ansvarligVirksomhet.id)
             }
