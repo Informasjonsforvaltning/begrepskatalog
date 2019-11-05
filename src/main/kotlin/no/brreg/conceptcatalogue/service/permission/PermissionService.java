@@ -23,6 +23,13 @@ public class PermissionService {
             .anyMatch(rr -> rr.matchPermission(targetType, targetId, permission));
     }
 
+    public boolean hasPublisherPermission(String targetId, PublisherPermission publisherPermission) {
+        logger.debug("Checking publisher permission: Granted role={}, checking permission={},{} ", getAuthentication().getAuthorities(), targetId, publisherPermission);
+        return this.getRolesByType(PublisherResourceRole.class).stream()
+            .anyMatch(r -> r.matchResource(PublisherResourceRole.resourceType, targetId) && r.matchPermission(publisherPermission));
+    }
+
+
     Authentication getAuthentication() {
         return SecurityContextHolder.getContext().getAuthentication();
     }
