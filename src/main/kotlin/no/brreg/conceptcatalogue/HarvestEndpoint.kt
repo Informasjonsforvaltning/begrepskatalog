@@ -39,7 +39,6 @@ class HarvestEndpoint(val begrepRepository: BegrepRepository, val mongoOperation
         val writer = StringWriter()
         // TODO: add test for Model object
         modelBuilder.build().write(writer, "TURTLE")
-        println(writer.buffer)
 
         return ResponseEntity.ok(writer.buffer.toString())
     }
