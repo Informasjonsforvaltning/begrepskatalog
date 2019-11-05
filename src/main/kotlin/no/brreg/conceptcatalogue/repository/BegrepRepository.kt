@@ -8,6 +8,8 @@ import org.springframework.stereotype.Repository
 @Repository
 interface BegrepRepository : MongoRepository<Begrep, String> {
 
+    fun getBegrepByAnsvarligVirksomhetIdIn(orgNr: List<String>): List<Begrep>
+
     fun getBegrepByAnsvarligVirksomhetId(orgNr: String): List<Begrep>
 
     fun getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr: String, status: Status): List<Begrep>

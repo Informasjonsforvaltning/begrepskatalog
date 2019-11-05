@@ -26,6 +26,7 @@ import java.util.*
 import javax.json.JsonException
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
+import kotlin.streams.toList
 
 private val logger = LoggerFactory.getLogger(BegreperApiImplK::class.java)
 
@@ -41,13 +42,18 @@ class BegreperApiImplK(
 
     override fun getBegrep(httpServletRequest: HttpServletRequest?, @PathVariable orgnumber: String?, status: Status?): ResponseEntity<List<Begrep>> {
         logger.info("Get begrep $orgnumber")
-        //todo generate accessible organisation list filter
-        //todo generate status filter or remove from spec
 
-        if (orgnumber != null && permissionService.hasPublisherPermission(orgnumber, PublisherPermission.read)) {
-            return ResponseEntity.ok(begrepRepository.getBegrepByAnsvarligVirksomhetId(orgnumber))
+        val orgNumbers = permissionService.getPublishersForPermission(PublisherPermission.read).stream()
+                .filter { o -> orgnumber == null || o == orgnumber }
+                .toList()
+
+        if (orgNumbers.count() == 0) {
+            return ResponseEntity.ok(mutableListOf())
         }
-        return ResponseEntity.ok(mutableListOf())
+
+        val begreps = begrepRepository.getBegrepByAnsvarligVirksomhetIdIn(orgNumbers)
+        
+        return ResponseEntity.ok(begreps)
     }
 
     @GetMapping("/ping")

@@ -52,7 +52,7 @@ paths:
         - in: query
           name: orgNummer
           description: Virksomhetens organisasjonsnummer
-          required: true
+          required: false
           schema:
             type: string
         - in: query
