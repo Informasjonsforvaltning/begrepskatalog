@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.util.UriComponentsBuilder
 import java.time.OffsetDateTime
 import java.util.*
 import javax.json.JsonException
@@ -80,8 +81,12 @@ class BegreperApiImplK(
         begrepRepository.insert(newBegrep)
 
         val headers = HttpHeaders()
-        //todo there must be a better way to build path
-        headers.add(HttpHeaders.LOCATION, httpServletRequest.requestURI.removeSuffix("/") + "/" + newBegrep.id)
+        val locationUri = UriComponentsBuilder
+                .fromUriString(httpServletRequest.requestURI)
+                .path("/%s".format(newBegrep.id))
+                .build().toUriString()
+
+        headers.add(HttpHeaders.LOCATION, locationUri)
         headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.LOCATION)
         return ResponseEntity<Void>(headers, HttpStatus.CREATED)
     }
