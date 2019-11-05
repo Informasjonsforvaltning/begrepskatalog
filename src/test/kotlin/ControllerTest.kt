@@ -22,13 +22,16 @@ class ControllerTest {
         val begrepRepositoryMock: BegrepRepository = prepareBegrepRepositoryMock()
         val httpServletRequestMock: HttpServletRequest = mock()
         val postRequestUri = "/begreper"
+        val baseUrl = "https://testurl.no"
+
         whenever(httpServletRequestMock.requestURI).thenReturn(postRequestUri)
+        whenever(httpServletRequestMock.requestURL).thenReturn(StringBuffer(baseUrl))
 
         val permissionServiceMock: PermissionService = prepareFdkPermissionsMock()
         val rabbitPublisherMock: ConceptPublisher = prepareRabbitMock()
 
         val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, permissionServiceMock, rabbitPublisherMock)
-        begreperApiImplK.baseURL = "https://registrering-begrep.ut1.fellesdatakatalog.brreg.no"
+        begreperApiImplK.baseURL = baseUrl
         val begrep = Begrep()
         begrep.ansvarligVirksomhet = createTestVirksomhet()
 
@@ -336,6 +339,7 @@ class ControllerTest {
     private fun prepareRabbitMock(virksomhet: Virksomhet = createTestVirksomhet()): ConceptPublisher {
         val conceptPublisher: ConceptPublisher = mock {}
         whenever(conceptPublisher.send(virksomhet.id)).then { doNothing() }
+        whenever(conceptPublisher.sendNewDataSource(virksomhet.id, "/collections")).then { doNothing() }
         return conceptPublisher
     }
 }
