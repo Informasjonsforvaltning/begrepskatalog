@@ -73,6 +73,7 @@ class BegreperApiImplK(
 
         var newBegrep: Begrep = begrep;
         newBegrep.id = UUID.randomUUID().toString()
+        newBegrep.status = Status.UTKAST
 
         newBegrep.updateLastChangedAndByWhom()
 
