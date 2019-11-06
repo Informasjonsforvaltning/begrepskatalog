@@ -27,7 +27,7 @@ security:
 ---
 
 spring:
-  profiles: develop,unit-integration
+  profiles: develop,test,unit-integration
   data.mongodb.uri: mongodb://${MONGO_USERNAME:admin}:${MONGO_PASSWORD:admin}@${MONGO_HOST:localhost:27017}/?authSource=admin&authMechanism=SCRAM-SHA-1&serverSelectionTimeoutMS=2000
 
   rabbitmq:
