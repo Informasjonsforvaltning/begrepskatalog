@@ -41,8 +41,9 @@ class BegreperApiImplK(
 
     override fun getBegrep(httpServletRequest: HttpServletRequest?, @PathVariable orgnumber: String?, status: Status?): ResponseEntity<List<Begrep>> {
         logger.info("Get begrep $orgnumber")
-        //todo generate accessible organisation list filter
-        //todo generate status filter or remove from spec
+
+        // todo generate status filter or remove from spec.
+        // https://github.com/Informasjonsforvaltning/concept-catalogue/issues/120
 
         if (orgnumber != null && permissionService.hasPublisherPermission(orgnumber, PublisherPermission.read)) {
             return ResponseEntity.ok(begrepRepository.getBegrepByAnsvarligVirksomhetId(orgnumber))
