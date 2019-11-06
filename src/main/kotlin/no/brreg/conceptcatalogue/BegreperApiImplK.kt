@@ -91,11 +91,7 @@ class BegreperApiImplK(
         return ResponseEntity<Void>(headers, HttpStatus.CREATED)
     }
 
-    override fun setBegrepById(httpServletRequest: HttpServletRequest?, id: String?, jsonPatchOperations: List<JsonPatchOperation>?, validate: Boolean?): ResponseEntity<Begrep> {
-        if (id == null) {
-            throw RuntimeException("Attempt to PATCH begrep with no id path variable given")
-        }
-
+    override fun setBegrepById(httpServletRequest: HttpServletRequest?, id: String, jsonPatchOperations: List<JsonPatchOperation>?, validate: Boolean?): ResponseEntity<Begrep> {
         if (jsonPatchOperations == null) {
             throw RuntimeException("Attempt to PATCH begrep with no changes provided. Id provided was $id")
         }
