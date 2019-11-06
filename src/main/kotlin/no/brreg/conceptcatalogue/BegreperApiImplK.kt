@@ -121,7 +121,7 @@ class BegreperApiImplK(
 
             begrepRepository.save(patchedBegrep)
 
-            if (patchedBegrep.status == Status.PUBLISERT) {
+            if (patchedBegrep.status == Status.PUBLISERT || storedBegrep.status == Status.PUBLISERT) {
                 rabbitmqPublisher.send(patchedBegrep.ansvarligVirksomhet.id)
             }
 
