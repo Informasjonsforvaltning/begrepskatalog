@@ -3,27 +3,24 @@ package no.brreg.conceptcatalogue
 import no.begrepskatalog.generated.api.CollectionsApi
 import no.begrepskatalog.generated.model.Begrep
 import no.begrepskatalog.generated.model.Kildebeskrivelse
-import no.begrepskatalog.generated.model.Status
-import no.brreg.conceptcatalogue.repository.BegrepRepository
+import no.brreg.conceptcatalogue.service.ConceptService
 import no.difi.skos_ap_no.concept.builder.Conceptcollection.CollectionBuilder
 import no.difi.skos_ap_no.concept.builder.ModelBuilder
 import no.difi.skos_ap_no.concept.builder.generic.SourceType
 import org.apache.jena.rdf.model.Resource
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import java.io.StringWriter
 import javax.servlet.http.HttpServletRequest
 
 @RestController
-class HarvestEndpoint(val begrepRepository: BegrepRepository, val mongoOperations: MongoOperations) : CollectionsApi {
+class HarvestEndpoint(private val conceptService: ConceptService) : CollectionsApi {
+    private val logger = LoggerFactory.getLogger(HarvestEndpoint::class.java)
 
     @Value("\${application.collectionBaseUri}")
     private lateinit var collectionBaseUri: String
-
-    private val logger = LoggerFactory.getLogger(HarvestEndpoint::class.java)
 
     override fun getCollections(httpServletRequest: HttpServletRequest, publisher: String?): ResponseEntity<Any> {
         logger.info("Harvest - request")
@@ -44,7 +41,7 @@ class HarvestEndpoint(val begrepRepository: BegrepRepository, val mongoOperation
     }
 
     fun getCollections(httpServletRequest: HttpServletRequest, modelBuilder: ModelBuilder) {
-        val publisherIds = mongoOperations.query(Begrep::class.java).distinct("ansvarligVirksomhet.id").`as`(String::class.java).all()
+        val publisherIds = conceptService.getAllPublisherIds()
 
         for (publisherId in publisherIds) {
             getCollection(httpServletRequest, modelBuilder, publisherId)
@@ -53,7 +50,7 @@ class HarvestEndpoint(val begrepRepository: BegrepRepository, val mongoOperation
 
     fun getCollection(httpServletRequest: HttpServletRequest, modelBuilder: ModelBuilder, publisherId: String) {
 
-        val allPublishedBegrepByCompany = begrepRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(publisherId, Status.PUBLISERT)
+        val allPublishedBegrepByCompany = conceptService.getPublishedConceptsForPublisherId(publisherId)
 
         logger.info("Harvest $publisherId found ${allPublishedBegrepByCompany.size} Begrep")
 
