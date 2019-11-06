@@ -4,6 +4,7 @@ import no.begrepskatalog.generated.api.CollectionsApi
 import no.begrepskatalog.generated.model.Begrep
 import no.begrepskatalog.generated.model.Kildebeskrivelse
 import no.brreg.conceptcatalogue.service.ConceptService
+import no.brreg.conceptcatalogue.service.SkosApNoModelService
 import no.difi.skos_ap_no.concept.builder.Conceptcollection.CollectionBuilder
 import no.difi.skos_ap_no.concept.builder.ModelBuilder
 import no.difi.skos_ap_no.concept.builder.generic.SourceType
@@ -12,11 +13,13 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
-import java.io.StringWriter
 import javax.servlet.http.HttpServletRequest
 
 @RestController
-class HarvestEndpoint(private val conceptService: ConceptService) : CollectionsApi {
+class HarvestEndpoint(
+        private val conceptService: ConceptService,
+        private val skosApNoModelService: SkosApNoModelService
+) : CollectionsApi {
     private val logger = LoggerFactory.getLogger(HarvestEndpoint::class.java)
 
     @Value("\${application.collectionBaseUri}")
@@ -33,11 +36,7 @@ class HarvestEndpoint(private val conceptService: ConceptService) : CollectionsA
             getCollection(httpServletRequest, modelBuilder, publisher);
         }
 
-        val writer = StringWriter()
-        // TODO: add test for Model object
-        modelBuilder.build().write(writer, "TURTLE")
-
-        return ResponseEntity.ok(writer.buffer.toString())
+        return ResponseEntity.ok(skosApNoModelService.serializeAsTextTurtle(modelBuilder.build()))
     }
 
     fun getCollections(httpServletRequest: HttpServletRequest, modelBuilder: ModelBuilder) {
