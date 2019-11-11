@@ -12,5 +12,3 @@ services:
       - SSO_HOST
       - LOG_LEVEL=DEBUG
       - LOG_FORMAT=compact
-
-

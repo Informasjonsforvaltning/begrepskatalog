@@ -16,8 +16,7 @@ spring:
       exchange: 'harvests'
 
 application:
-  # todo In default section we have prod conf. this looks like dev value here
-  collectionBaseUri: https://registrering-begrep.ut1.fellesdatakatalog.brreg.no/
+  collectionBaseUri: ${COLLECTION_BASE_URI:https://registrering-begrep.fellesdatakatalog.brreg.no}
 
 security:
   oauth2:
