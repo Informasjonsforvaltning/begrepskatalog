@@ -29,6 +29,9 @@ public class PermissionService {
             .anyMatch(r -> r.matchResource(OrganizationResourceRole.resourceType, targetId) && r.matchPermission(organizationPermission));
     }
 
+    public String getUserId() {
+        return getAuthentication().getPrincipal().toString();
+    }
 
     private Authentication getAuthentication() {
         return SecurityContextHolder.getContext().getAuthentication();
