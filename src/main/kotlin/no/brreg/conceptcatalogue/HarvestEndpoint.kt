@@ -66,7 +66,7 @@ class HarvestEndpoint(
     }
 
     fun appendBegrepToCollection(begrep: Begrep, collectionBuilder: CollectionBuilder): Resource {
-        val urlForAccessingThisBegrepsRegistration = collectionBaseUri + begrep.ansvarligVirksomhet.id + "/" + begrep.id
+        val urlForAccessingThisBegrepsRegistration = "$collectionBaseUri/${begrep.ansvarligVirksomhet.id}/${begrep.id}"
 
         var conceptBuilder = collectionBuilder.conceptBuilder(urlForAccessingThisBegrepsRegistration)
         var definitionBuilder = conceptBuilder.definitionBuilder()
