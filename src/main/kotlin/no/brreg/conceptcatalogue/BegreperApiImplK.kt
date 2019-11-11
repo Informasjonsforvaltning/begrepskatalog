@@ -152,7 +152,7 @@ class BegreperApiImplK(
         }
         endringslogelement.apply {
             endringstidspunkt = OffsetDateTime.now()
-            brukerId = "todo" //TODO: When auth is ready read username from auth context
+            brukerId = permissionService.userId
         }
     }
 
