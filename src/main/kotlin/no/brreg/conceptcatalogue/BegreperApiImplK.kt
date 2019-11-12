@@ -9,7 +9,7 @@ import no.begrepskatalog.generated.model.Status
 import no.brreg.conceptcatalogue.repository.BegrepRepository
 import no.brreg.conceptcatalogue.service.ConceptPublisher
 import no.brreg.conceptcatalogue.service.permission.PermissionService
-import no.brreg.conceptcatalogue.service.permission.PublisherResourceRole.PublisherPermission
+import no.brreg.conceptcatalogue.service.permission.OrganizationResourceRole.OrganizationPermission
 import no.brreg.conceptcatalogue.utils.patchBegrep
 import no.brreg.conceptcatalogue.validation.isValidBegrep
 import org.slf4j.LoggerFactory
@@ -46,7 +46,7 @@ class BegreperApiImplK(
         // todo generate status filter or remove from spec.
         // https://github.com/Informasjonsforvaltning/concept-catalogue/issues/120
 
-        if (orgnumber != null && permissionService.hasPublisherPermission(orgnumber, PublisherPermission.read)) {
+        if (orgnumber != null && permissionService.hasOrganizationPermission(orgnumber, OrganizationPermission.read)) {
             return ResponseEntity.ok(begrepRepository.getBegrepByAnsvarligVirksomhetId(orgnumber))
         }
         return ResponseEntity.ok(mutableListOf())
@@ -69,7 +69,7 @@ class BegreperApiImplK(
 
     override fun createBegrep(httpServletRequest: HttpServletRequest, @ApiParam(value = "", required = true) @Valid @RequestBody begrep: Begrep): ResponseEntity<Void> {
 
-        if (!permissionService.hasPublisherPermission(begrep.ansvarligVirksomhet?.id, PublisherPermission.write)) {
+        if (!permissionService.hasOrganizationPermission(begrep.ansvarligVirksomhet?.id, OrganizationPermission.write)) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
@@ -112,7 +112,7 @@ class BegreperApiImplK(
         val storedBegrep = begrepRepository.getBegrepById(id)
                 ?: throw RuntimeException("Attempt to PATCH begrep that does not already exist. Begrep id $id")
 
-        if (!permissionService.hasPublisherPermission(storedBegrep.ansvarligVirksomhet?.id, PublisherPermission.write)) {
+        if (!permissionService.hasOrganizationPermission(storedBegrep.ansvarligVirksomhet?.id, OrganizationPermission.write)) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
@@ -153,7 +153,7 @@ class BegreperApiImplK(
 
         val begrep = begrepRepository.getBegrepById(id)
 
-        if (!permissionService.hasPublisherPermission(begrep?.ansvarligVirksomhet?.id, PublisherPermission.read)) {
+        if (!permissionService.hasOrganizationPermission(begrep?.ansvarligVirksomhet?.id, OrganizationPermission.read)) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
@@ -180,7 +180,7 @@ class BegreperApiImplK(
             return ResponseEntity(HttpStatus.NOT_FOUND)
         }
 
-        if (!permissionService.hasPublisherPermission(begrep.ansvarligVirksomhet?.id, PublisherPermission.write)) {
+        if (!permissionService.hasOrganizationPermission(begrep.ansvarligVirksomhet?.id, OrganizationPermission.write)) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
