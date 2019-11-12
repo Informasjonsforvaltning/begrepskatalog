@@ -11,7 +11,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static no.brreg.conceptcatalogue.service.permission.PublisherResourceRole.PublisherPermission;
+import static no.brreg.conceptcatalogue.service.permission.OrganizationResourceRole.OrganizationPermission;
 
 @Service
 public class PermissionService {
@@ -23,14 +23,14 @@ public class PermissionService {
             .anyMatch(rr -> rr.matchPermission(targetType, targetId, permission));
     }
 
-    public boolean hasPublisherPermission(String targetId, PublisherPermission publisherPermission) {
-        logger.debug("Checking publisher permission: Granted role={}, checking permission={},{} ", getAuthentication().getAuthorities(), targetId, publisherPermission);
-        return this.getRolesByType(PublisherResourceRole.class).stream()
-            .anyMatch(r -> r.matchResource(PublisherResourceRole.resourceType, targetId) && r.matchPermission(publisherPermission));
+    public boolean hasOrganizationPermission(String targetId, OrganizationPermission organizationPermission) {
+        logger.debug("Checking publisher permission: Granted role={}, checking permission={},{} ", getAuthentication().getAuthorities(), targetId, organizationPermission);
+        return this.getRolesByType(OrganizationResourceRole.class).stream()
+            .anyMatch(r -> r.matchResource(OrganizationResourceRole.resourceType, targetId) && r.matchPermission(organizationPermission));
     }
 
 
-    Authentication getAuthentication() {
+    private Authentication getAuthentication() {
         return SecurityContextHolder.getContext().getAuthentication();
     }
 
@@ -49,10 +49,10 @@ public class PermissionService {
             .collect(Collectors.toList());
     }
 
-    public Set<String> getPublishersForPermission(PublisherPermission publisherPermission) {
-        return this.getRolesByType(PublisherResourceRole.class).stream()
-            .filter(r -> r.matchPermission(publisherPermission))
-            .map(PublisherResourceRole::getResourceId)
+    public Set<String> getOrganizationsForPermission(OrganizationPermission organizationPermission) {
+        return this.getRolesByType(OrganizationResourceRole.class).stream()
+            .filter(r -> r.matchPermission(organizationPermission))
+            .map(OrganizationResourceRole::getResourceId)
             .collect(Collectors.toSet());
     }
 
