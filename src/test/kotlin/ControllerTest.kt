@@ -38,10 +38,10 @@ class ControllerTest {
         val retValue = begreperApiImplK.createBegrep(httpServletRequestMock, begrep)
         assertNotNull(retValue)
         assertNotNull(retValue.headers)
-        val locationHeaderValue: String? = retValue.headers.get("Location")?.get(0);
+        val locationHeaderValue: String? = retValue.headers.get("Location")?.get(0)
 
         // NOTE: below regular expression is used to validate location header pattern, which has to be in the format (/begreper/<UUID>)
-        val testRegExp = Regex("^/begreper/[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$", RegexOption.IGNORE_CASE);
+        val testRegExp = Regex("^/begreper/[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$", RegexOption.IGNORE_CASE)
         assertTrue("Incorrect location header value", locationHeaderValue?.matches(testRegExp) ?: false)
     }
 
@@ -51,12 +51,10 @@ class ControllerTest {
         val begrepRepositoryMock: BegrepRepository = prepareBegrepRepositoryMock()
         val permissionServiceMock: PermissionService = prepareFdkPermissionsMock()
 
-        val emptyBegrep = Begrep()
-
         val rabbitPublisherMock: ConceptPublisher = prepareRabbitMock()
         val httpServletRequestMock: HttpServletRequest = mock()
         val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, permissionServiceMock, rabbitPublisherMock)
-        val retValue = begreperApiImplK.setBegrepById(httpServletRequestMock, "esf3", listOf(), true)
+        begreperApiImplK.setBegrepById(httpServletRequestMock, "esf3", listOf(), true)
     }
 
     @Ignore // TODO: there is no functionality for on-demand validation
@@ -71,7 +69,7 @@ class ControllerTest {
         val httpServletRequestMock: HttpServletRequest = mock()
         val rabbitPublisherMock: ConceptPublisher = prepareRabbitMock()
         val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, permissionServiceMock, rabbitPublisherMock)
-        val retValue = begreperApiImplK.setBegrepById(httpServletRequestMock, "esf3", listOf(), true)
+        begreperApiImplK.setBegrepById(httpServletRequestMock, "esf3", listOf(), true)
     }
 
     @Test
@@ -84,7 +82,7 @@ class ControllerTest {
         val httpServletRequestMock: HttpServletRequest = mock()
         val rabbitPublisherMock: ConceptPublisher = prepareRabbitMock()
         val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, permissionServiceMock, rabbitPublisherMock)
-        val retValue = begreperApiImplK.deleteBegrepById(httpServletRequestMock, testBegrep.id)
+        begreperApiImplK.deleteBegrepById(httpServletRequestMock, testBegrep.id)
 
         verify(begrepRepositoryMock).getBegrepById(testBegrep.id)
         verify(begrepRepositoryMock).removeBegrepById(testBegrep.id)
@@ -310,7 +308,7 @@ class ControllerTest {
         return kpunkt
     }
 
-    fun createTestVirksomhet(): no.begrepskatalog.generated.model.Virksomhet =
+    fun createTestVirksomhet(): Virksomhet =
             Virksomhet().apply {
                 id = "910244132"
                 navn = "Ramsund og Rognand revisjon"
