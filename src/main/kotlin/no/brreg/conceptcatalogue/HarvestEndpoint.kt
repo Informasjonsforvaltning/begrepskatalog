@@ -20,8 +20,8 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 class HarvestEndpoint(val begrepRepository: BegrepRepository, val mongoOperations: MongoOperations) : CollectionsApi {
 
-    @Value("\${application.baseURL}")
-    lateinit var baseURL: String
+    @Value("\${application.collectionBaseUri}")
+    private lateinit var collectionBaseUri: String
 
     private val logger = LoggerFactory.getLogger(HarvestEndpoint::class.java)
 
@@ -70,7 +70,7 @@ class HarvestEndpoint(val begrepRepository: BegrepRepository, val mongoOperation
     }
 
     fun appendBegrepToCollection(begrep: Begrep, collectionBuilder: CollectionBuilder): Resource {
-        val urlForAccessingThisBegrepsRegistration = baseURL + begrep.ansvarligVirksomhet.id + "/" + begrep.id
+        val urlForAccessingThisBegrepsRegistration = collectionBaseUri + begrep.ansvarligVirksomhet.id + "/" + begrep.id
 
         var conceptBuilder = collectionBuilder.conceptBuilder(urlForAccessingThisBegrepsRegistration)
         var definitionBuilder = conceptBuilder.definitionBuilder()

@@ -37,9 +37,6 @@ class BegreperApiImplK(
         val rabbitmqPublisher: ConceptPublisher
 ) : BegreperApi {
 
-    @Value("\${application.baseURL}")
-    lateinit var baseURL: String
-
     override fun getBegrep(httpServletRequest: HttpServletRequest?, @PathVariable orgnumber: String?, status: Status?): ResponseEntity<List<Begrep>> {
         logger.info("Get begrep $orgnumber")
 
