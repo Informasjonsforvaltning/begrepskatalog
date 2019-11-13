@@ -17,7 +17,7 @@ spring:
 
 application:
   # todo In default section we have prod conf. this looks like dev value here
-  baseURL: https://registrering-begrep.ut1.fellesdatakatalog.brreg.no/
+  collectionBaseUri: https://registrering-begrep.ut1.fellesdatakatalog.brreg.no/
 
 security:
   oauth2:

@@ -31,7 +31,7 @@ class ControllerTest {
         val rabbitPublisherMock: ConceptPublisher = prepareRabbitMock()
 
         val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, permissionServiceMock, rabbitPublisherMock)
-        begreperApiImplK.baseURL = baseUrl
+
         val begrep = Begrep()
         begrep.ansvarligVirksomhet = createTestVirksomhet()
 
