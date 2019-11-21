@@ -1,0 +1,69 @@
+openapi: 3.0.2
+info:
+  title: Mock Authenticatior
+  description: API for mocking of autentication on development for felles datakatalog
+  version: '1.0'
+paths:
+  /jwk:
+    get:
+      tags:
+        - Keystore
+      summary: Returns a json web keystore token for RSA signing
+      description: add to jwk-key-store in application.properties
+      responses:
+        '200':
+          description: OK
+          content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/JwkStore'
+  /jwt:
+    get:
+      tags:
+        - Keystore
+      summary: Returns a json web token signed with the jwk
+      description: use for accessing restricted resources
+      responses:
+        '200':
+          description: OK
+          content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Jwt'
+                  example:
+                    token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjA3NGI0NGYxLWVkZWMtNGNlZS05MGJjLTI0Y2YwMjM1NjRiYSJ9.eyJ1c2VyX25hbWUiOiIxOTI0NzgyNTYzIiwibmFtZSI6IlRFU1QgVVNFUiIsImdpdmVuX25hbWUiOiJURVNUIiwiZmFtaWx5X25hbWUiOiJVU0VSIiwiYXV0aG9yaXRpZXMiOiJzeXN0ZW06cm9vdDphZG1pbiIsImlhdCI6MTU3NDA4MDg1MywiZXhwIjoxNTc0MTI0MDUzLCJhdWQiOlsiYS1iYWNrZW5kLXNlcnZpY2UiLCJjb25jZXB0LWNhdGFsb3VnZSJdLCJpc3MiOiJmZGttb2NrIn0.eYAN4sj5qbgHjtDi84sRK7ivjbdsU4OznA7bcc1v-VtSa0QB-YJ5P4kMKhd3AU1UayZKsGPjJsoIMBFhLW36WivjXQ9yyXPaNoJHdn-abyL7tVXN9suuQBH9M7Lri57LQBJTCwM6DJHO5YsBs46-27c_IFlwuhfHx5owTSDC7F4
+components:
+  schemas:
+    JwkStore:
+      type: object
+      properties:
+        keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/Jwk'
+    Jwk:
+     type: object
+     properties:
+        kid:
+          type: string
+          example: d768fb85-49b0-4158-8453-45df4894e584
+        kty:
+          type: string
+          example: RSA
+        alg:
+          type: string
+          example: RS256
+        use:
+          type: string
+          example: sig
+        n:
+          type: string
+          example: k6ZC4pUzs-Isg9q-mvy5zogADdoxJQGT7HrrZpN96nyCtVbk3VfoRYgEMxmdaVoz8_khVxEgsAuRPFOKpNTOrnz1UuVJ0rFmL4ImxU_GhY-Pj1EugWHyV-Ie_aea436b8P1EqKSjQxlVqTSsJeZT0Gpra89HccSteGrDWHYU3xQ-aRmIx8qge9ojJQztONYjVq1bhHaGgDUjrtKYhlbjKTWxEZ6zd8lJf9gtRktbxbJ3k_k5xjzKtfW-fM6vJExTl_l4mW1zCVAhQ0Yp7HdSXORkWZvnZROjwlnrE3hcjwOGvRFptipuxUFJ8Kg6NMi1wiTRI4sPXHjOVY5niAjCyw
+        e:
+          type: string
+          example: AQAB
+    Jwt:
+      type: object
+      properties:
+        token:
+          type: string

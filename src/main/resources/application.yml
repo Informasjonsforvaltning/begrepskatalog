@@ -27,20 +27,28 @@ security:
 
 spring:
   profiles: develop,test,unit-integration
-  data.mongodb.uri: mongodb://${MONGO_USERNAME:admin}:${MONGO_PASSWORD:admin}@${MONGO_HOST:localhost:27017}/?authSource=admin&authMechanism=SCRAM-SHA-1&serverSelectionTimeoutMS=2000
 
-  rabbitmq:
-    host: 127.0.0.1
-    port: 5672
-    username: admin
-    password: admin
-    template:
-      routing-key: 'ConceptPublisher.HarvestTrigger'
-      exchange: 'harvests'
+logging:
+  level:
+    org.springframework.security: WARN
+    no.brreg: DEBUG
+
+data.mongodb.uri: mongodb://${MONGO_USERNAME:admin}:${MONGO_PASSWORD:admin}@${MONGO_HOST:mongodb:27017}/?authSource=admin&authMechanism=SCRAM-SHA-1&serverSelectionTimeoutMS=2000
+
+rabbitmq:
+  host: 127.0.0.1
+  port: 5672
+  username: admin
+  password: admin
+  template:
+    routing-key: 'ConceptPublisher.HarvestTrigger'
+    exchange: 'harvests'
+
 server:
   port: 8201
 
 security:
   oauth2:
     resource:
-      jwk.key-set-uri: http://localhost:8084/auth/realms/fdk/protocol/openid-connect/certs
+      id: concept-catalogue
+      jwk.key-set-uri: http://sso:8084/jwk

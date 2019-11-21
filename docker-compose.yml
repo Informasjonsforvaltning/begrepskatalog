@@ -3,5 +3,32 @@ version: "3"
 services:
   concept-catalogue:
     image: dcatno/concept-catalogue:latest
-    expose:
-      - "8080"
+    depends_on:
+      - mongodb
+      - sso
+    ports:
+      - 8201:8201
+    environment:
+      - MONGO_USERNAME=admin
+      - MONGO_PASSWORD=admin
+      - MONGO_HOST=mongodb:27017
+      - LOG_LEVEL=DEBUG
+      - LOG_FORMAT=compact
+      - SSO_HOST
+      - SPRING_PROFILES_ACTIVE=test
+  mongodb:
+    image: mongo:latest
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+    ports:
+      - 27017:27017
+  sso:
+    image: stoplight/prism:3
+    command: >
+      mock -p 8084 --host 0.0.0.0
+      /var/www/html/jwk.yaml
+    volumes:
+     - ${PWD}/jwk.yaml:/var/www/html/jwk.yaml
+    ports:
+      - 8084:8084
