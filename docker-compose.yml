@@ -24,11 +24,6 @@ services:
     ports:
       - 27017:27017
   sso:
-    image: stoplight/prism:3
-    command: >
-      mock -p 8084 --host 0.0.0.0
-      /var/www/html/jwk.yaml
-    volumes:
-     - ${PWD}/jwk.yaml:/var/www/html/jwk.yaml
+    image: docker.pkg.github.com/informasjonsforvaltning/auth-utils-java/auth-utils-java:latest
     ports:
       - 8084:8084
