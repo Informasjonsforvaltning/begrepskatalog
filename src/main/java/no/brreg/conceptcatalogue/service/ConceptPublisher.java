@@ -47,7 +47,7 @@ public class ConceptPublisher {
             .build();
 
         try {
-            rabbitTemplate.convertAndSend(exchange, "conceptPublisher.NewDataSource", dataSource);
+            rabbitTemplate.convertAndSend(exchange, "concept.publisher.NewDataSource", dataSource);
             logger.info("Successfully sent new datasource message for publisher {}", publisherId);
         } catch (AmqpException e) {
             logger.error("Failed to send new datasource message for publisher {}", publisherId, e);

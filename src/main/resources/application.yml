@@ -12,7 +12,7 @@ spring:
     username: ${RABBIT_USERNAME}
     password: ${RABBIT_PASSWORD}
     template:
-      routing-key: 'ConceptPublisher.HarvestTrigger'
+      routing-key: 'concept.publisher.HarvestTrigger'
       exchange: 'harvests'
 
 application:
@@ -34,9 +34,6 @@ spring:
     port: 5672
     username: admin
     password: admin
-    template:
-      routing-key: 'ConceptPublisher.HarvestTrigger'
-      exchange: 'harvests'
 server:
   port: 8201
 
