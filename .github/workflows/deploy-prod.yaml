@@ -24,7 +24,7 @@ jobs:
       - run: gcloud auth configure-docker
 
       - name: Build Docker image
-        run: docker build --build-arg JAR_FILE=concept-catalogue-1.0.0-SNAPSHOT.jar -t eu.gcr.io/fdk-infra/concept-catalogue:latest .
+        run: docker build -q --build-arg JAR_FILE=concept-catalogue-1.0.0-SNAPSHOT.jar -t eu.gcr.io/fdk-infra/concept-catalogue:latest .
 
       - name: Run tests
         run: mvn verify
