@@ -2,6 +2,7 @@ FROM maven:3.5.2-jdk-8-alpine AS MAVEN_BUILD_ENVIRONMENT
 
 COPY pom.xml /tmp/
 COPY src /tmp/src/
+COPY libs /tmp/libs/
 WORKDIR /tmp/
 
 RUN mvn clean package
