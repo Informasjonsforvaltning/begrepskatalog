@@ -2,6 +2,6 @@ version: "3"
 
 services:
   concept-catalogue:
-    image: dcatno/concept-catalogue:latest
+    image: eu.gcr.io/fdk-infra/concept-catalogue:latest
     expose:
       - "8080"
