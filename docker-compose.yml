@@ -2,7 +2,7 @@ version: "3"
 
 services:
   concept-catalogue:
-    image: dcatno/concept-catalogue:latest
+    image: eu.gcr.io/fdk-infra/concept-catalogue:latest
     depends_on:
       - mongodb
       - sso
@@ -14,7 +14,6 @@ services:
       - MONGO_HOST=mongodb:27017
       - LOG_LEVEL=DEBUG
       - LOG_FORMAT=compact
-      - SSO_HOST
       - SPRING_PROFILES_ACTIVE=test
   mongodb:
     image: mongo:latest

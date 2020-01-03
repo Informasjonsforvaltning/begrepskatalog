@@ -30,7 +30,7 @@ spring:
 
 logging:
   level:
-    org.springframework.security: WARN
+    org.springframework.security: DEBUG
     no.brreg: DEBUG
 
 data.mongodb.uri: mongodb://${MONGO_USERNAME:admin}:${MONGO_PASSWORD:admin}@${MONGO_HOST:mongodb:27017}/?authSource=admin&authMechanism=SCRAM-SHA-1&serverSelectionTimeoutMS=2000
