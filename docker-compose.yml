@@ -5,6 +5,7 @@ services:
     image: eu.gcr.io/fdk-infra/concept-catalogue:latest
     depends_on:
       - mongodb
+      - rabbitmq
       - sso
     ports:
       - 8201:8201
@@ -12,6 +13,8 @@ services:
       - MONGO_USERNAME=admin
       - MONGO_PASSWORD=admin
       - MONGO_HOST=mongodb:27017
+      - RABBIT_USERNAME=admin
+      - RABBIT_PASSWORD=admin
       - LOG_LEVEL=DEBUG
       - LOG_FORMAT=compact
       - SPRING_PROFILES_ACTIVE=test
@@ -22,6 +25,14 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=admin
     ports:
       - 27017:27017
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    ports:
+      - 5672:5672
+      - 15672:15672
   sso:
     image: docker.pkg.github.com/informasjonsforvaltning/auth-utils-java/auth-utils-java:latest
     ports:
