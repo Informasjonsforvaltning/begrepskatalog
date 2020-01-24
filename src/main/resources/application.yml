@@ -22,7 +22,7 @@ security:
   oauth2:
     resource:
       id: concept-catalogue
-      jwk.key-set-uri: http://sso:8084/auth/realms/fdk/protocol/openid-connect/certs
+      jwk.key-set-uri: ${JWK_KEY_SET_URI:http://sso:8084/auth/realms/fdk/protocol/openid-connect/certs}
 ---
 
 spring:
@@ -34,10 +34,17 @@ spring:
     port: 5672
     username: admin
     password: admin
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    no.brreg: DEBUG
+
 server:
   port: 8201
 
 security:
   oauth2:
     resource:
-      jwk.key-set-uri: http://localhost:8084/auth/realms/fdk/protocol/openid-connect/certs
+      id: concept-catalogue
+      jwk.key-set-uri: http://localhost:8084/jwk
