@@ -183,6 +183,10 @@ components:
             format: date
           endringslogelement:
             $ref: "#/components/schemas/Endringslogelement"
+          seOgså:
+            type: array
+            items:
+              type: string
     Kildebeskrivelse:
       type: object
       required:

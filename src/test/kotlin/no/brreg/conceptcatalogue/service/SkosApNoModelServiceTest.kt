@@ -936,6 +936,60 @@ class SkosApNoModelServiceTest {
         validateModelWithSingleConcept(publisherId, concept)
     }
 
+    @Test
+    @Throws(NoSuchFieldException::class)
+    fun expectConceptWithMandatoryFieldsAndEmptySeeAlsoReferencesToBeSerialisedCorrectly() {
+        val publisherId = "123456789"
+        val conceptId = "concept-id"
+
+        val concept = Begrep().apply {
+            id = conceptId
+            anbefaltTerm = createPrefLabel()
+            definisjon = createDefinition()
+            ansvarligVirksomhet = createPublisher(publisherId)
+            endringslogelement = createChangeLogElement()
+            omfang = createScope()
+            merknad = createScopeNote()
+            kildebeskrivelse = createSourceDescription()
+            tillattTerm = createAltLabel()
+            frarådetTerm = createHiddenLabel()
+            eksempel = createExample()
+            fagområde = createSubject()
+            bruksområde = createDomainOfUse()
+            kontaktpunkt = createContactPoint()
+            seOgså = emptyList()
+        }
+
+        validateModelWithSingleConcept(publisherId, concept)
+    }
+
+    @Test
+    @Throws(NoSuchFieldException::class)
+    fun expectConceptWithMandatoryFieldsAndNonEmptySeeAlsoReferencesToBeSerialisedCorrectly() {
+        val publisherId = "123456789"
+        val conceptId = "concept-id"
+
+        val concept = Begrep().apply {
+            id = conceptId
+            anbefaltTerm = createPrefLabel()
+            definisjon = createDefinition()
+            ansvarligVirksomhet = createPublisher(publisherId)
+            endringslogelement = createChangeLogElement()
+            omfang = createScope()
+            merknad = createScopeNote()
+            kildebeskrivelse = createSourceDescription()
+            tillattTerm = createAltLabel()
+            frarådetTerm = createHiddenLabel()
+            eksempel = createExample()
+            fagområde = createSubject()
+            bruksområde = createDomainOfUse()
+            kontaktpunkt = createContactPoint()
+            seOgså = createSeeAlsoReferences()
+        }
+
+        validateModelWithSingleConcept(publisherId, concept)
+    }
+
     private fun createExpectedCollectionUri(publisherId: String): String {
         return "$collectionBaseUri/$publisherId"
     }
@@ -1053,6 +1107,11 @@ class SkosApNoModelServiceTest {
             harTelefon = "123456789"
         }
     }
+
+    private fun createSeeAlsoReferences(): List<String> = listOf(
+            "http://localhost/see-also-reference-1",
+            "http://localhost/see-also-reference-2"
+    )
 
     private fun createConceptForPublisher(publisherId: String, conceptId: String): Begrep {
         return Begrep().apply {
@@ -1317,6 +1376,18 @@ class SkosApNoModelServiceTest {
             val contactPoint = concept.kontaktpunkt
             if (contactPoint != null) {
                 assertTrue("Expect concept to have a contact point", conceptResource.hasProperty(DCAT.contactPoint))
+            }
+        }
+
+        if (conceptResource.hasProperty(RDFS.seeAlso)) {
+            val seeAlsoProperties = conceptResource.listProperties(RDFS.seeAlso).toList().stream().map { it.string }.collect(Collectors.toList())
+
+            assertFalse("Expect concept to have at least one see also reference", seeAlsoProperties.isEmpty())
+            assertTrue("Expect concept  see also references not to be empty", seeAlsoProperties.stream().allMatch { !it.isNullOrEmpty() })
+        } else {
+            val seeAlso = concept.seOgså
+            if (seeAlso != null && seeAlso.isNotEmpty()) {
+                assertTrue("Expect concept to have see also references", conceptResource.hasProperty(RDFS.seeAlso))
             }
         }
     }

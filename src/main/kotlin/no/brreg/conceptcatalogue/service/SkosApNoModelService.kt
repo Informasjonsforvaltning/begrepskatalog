@@ -77,6 +77,7 @@ class SkosApNoModelService(
         addSubjectToConcept(conceptBuilder, concept)
         addDomainOfUseToConcept(conceptBuilder, concept)
         addContactPointToConcept(conceptBuilder, concept)
+        addSeeAlsoReferencesToConcept(conceptBuilder, concept)
 
         conceptBuilder.build()
     }
@@ -233,6 +234,15 @@ class SkosApNoModelService(
                 contactPointBuilder.telephone(phone)
             }
             contactPointBuilder.build()
+        }
+    }
+
+    private fun addSeeAlsoReferencesToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
+        val seeAlso = concept.seOgså
+        if (seeAlso != null && seeAlso.isNotEmpty()) {
+            seeAlso
+                    .filter { !it.isNullOrEmpty() }
+                    .forEach { conceptBuilder.seeAlso(it).build() }
         }
     }
 }
