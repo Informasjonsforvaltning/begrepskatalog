@@ -9,3 +9,5 @@ target
 *.ipr
 
 node_modules
+
+jwt.txt
