@@ -3,7 +3,7 @@ package no.brreg.conceptcatalogue.validation
 import no.begrepskatalog.generated.model.Begrep
 import no.begrepskatalog.generated.model.Status
 import no.begrepskatalog.generated.model.Virksomhet
-import org.hibernate.validator.internal.util.ModUtil
+import java.time.LocalDate
 
 fun isValidBegrep(begrep: Begrep): Boolean = when {
     begrep.status == null -> false
@@ -18,6 +18,7 @@ fun isValidBegrep(begrep: Begrep): Boolean = when {
     !isValidTranslationsMap(begrep.definisjon.tekst) -> false
     begrep.ansvarligVirksomhet == null -> false
     !begrep.ansvarligVirksomhet.isValid() -> false
+    !isValidValidityPeriod(begrep.gyldigFom, begrep.gyldigTom) -> false
     else -> true
 }
 
@@ -29,5 +30,10 @@ private fun Virksomhet.isValid(): Boolean = when {
 
 private fun isValidTranslationsMap(translations: Map<String, Any>): Boolean = when {
     translations is Map<String, Any> && !translations.values.stream().anyMatch { it is String && !it.isNullOrBlank() } -> false
+    else -> true
+}
+
+private fun isValidValidityPeriod(validFrom: LocalDate?, validTo: LocalDate?): Boolean = when {
+    validFrom != null && validTo != null && validFrom.isAfter(validTo) -> false
     else -> true
 }

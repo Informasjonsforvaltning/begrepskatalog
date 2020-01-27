@@ -5,6 +5,7 @@ import no.brreg.conceptcatalogue.validation.isValidBegrep
 import org.junit.Assert
 import org.junit.Test
 import java.time.LocalDate
+import java.time.Month
 import java.util.*
 
 class BegrepValidationTest {
@@ -21,7 +22,6 @@ class BegrepValidationTest {
             }
             eksempel = mapOf("nb" to "DummyEksempel")
             status = Status.GODKJENT
-            gyldigFom = LocalDate.now()
         }
     }
 
@@ -233,5 +233,33 @@ class BegrepValidationTest {
             id = "943574537"
         }
         Assert.assertTrue(isValidBegrep(begrep))
+    }
+
+    @Test
+    fun testBegrepValidityPeriodMustBeConfiguredCorrectly() {
+        val begrep = createBegrep()
+
+        val dateOne = LocalDate.of(2020, Month.JANUARY, 1)
+        val dateTwo = LocalDate.of(2020, Month.JANUARY, 2)
+
+        begrep.gyldigFom = null
+        begrep.gyldigTom = null
+        Assert.assertTrue(isValidBegrep(begrep))
+
+        begrep.gyldigFom = dateOne
+        begrep.gyldigTom = null
+        Assert.assertTrue(isValidBegrep(begrep))
+
+        begrep.gyldigFom = null
+        begrep.gyldigTom = dateTwo
+        Assert.assertTrue(isValidBegrep(begrep))
+
+        begrep.gyldigFom = dateOne
+        begrep.gyldigTom = dateTwo
+        Assert.assertTrue(isValidBegrep(begrep))
+
+        begrep.gyldigFom = dateTwo
+        begrep.gyldigTom = dateOne
+        Assert.assertFalse(isValidBegrep(begrep))
     }
 }
