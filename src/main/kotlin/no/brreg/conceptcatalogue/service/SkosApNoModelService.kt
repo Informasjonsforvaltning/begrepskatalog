@@ -78,6 +78,7 @@ class SkosApNoModelService(
         addDomainOfUseToConcept(conceptBuilder, concept)
         addContactPointToConcept(conceptBuilder, concept)
         addSeeAlsoReferencesToConcept(conceptBuilder, concept)
+        addValidityPeriodToConcept(conceptBuilder, concept)
 
         conceptBuilder.build()
     }
@@ -243,6 +244,34 @@ class SkosApNoModelService(
             seeAlso
                     .filter { !it.isNullOrEmpty() }
                     .forEach { conceptBuilder.seeAlso(it).build() }
+        }
+    }
+
+    private fun addValidityPeriodToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
+        val validFromIncluding = concept.gyldigFom;
+        val validToIncluding = concept.gyldigTom;
+
+        if (validFromIncluding != null && validToIncluding != null) {
+            if (validFromIncluding.isBefore(validToIncluding)) {
+                conceptBuilder
+                        .periodOfTimeBuilder()
+                        .validFromIncluding(validFromIncluding)
+                        .validToIncluding(validToIncluding)
+                        .build()
+            }
+        } else {
+            if (validFromIncluding != null) {
+                conceptBuilder
+                        .periodOfTimeBuilder()
+                        .validFromIncluding(validFromIncluding)
+                        .build()
+            }
+            if (validToIncluding != null) {
+                conceptBuilder
+                        .periodOfTimeBuilder()
+                        .validToIncluding(validToIncluding)
+                        .build()
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ import no.begrepskatalog.generated.model.*
 import no.difi.skos_ap_no.concept.builder.Conceptcollection.CollectionBuilder
 import no.difi.skos_ap_no.concept.builder.ModelBuilder
 import no.difi.skos_ap_no.concept.builder.SKOSNO
+import no.difi.skos_ap_no.concept.builder.Schema
 import no.difi.skos_ap_no.concept.builder.generic.SourceType
 import org.apache.jena.rdf.model.Resource
 import org.apache.jena.vocabulary.*
@@ -21,6 +22,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import java.io.StringReader
 import java.lang.reflect.InvocationTargetException
 import java.time.LocalDate
+import java.time.Month
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -990,6 +992,151 @@ class SkosApNoModelServiceTest {
         validateModelWithSingleConcept(publisherId, concept)
     }
 
+    @Test
+    @Throws(NoSuchFieldException::class)
+    fun expectConceptWithMandatoryFieldsAndNoValidityPeriodValuesToBeSerialisedCorrectly() {
+        val publisherId = "123456789"
+        val conceptId = "concept-id"
+
+        val concept = Begrep().apply {
+            id = conceptId
+            anbefaltTerm = createPrefLabel()
+            definisjon = createDefinition()
+            ansvarligVirksomhet = createPublisher(publisherId)
+            endringslogelement = createChangeLogElement()
+            omfang = createScope()
+            merknad = createScopeNote()
+            kildebeskrivelse = createSourceDescription()
+            tillattTerm = createAltLabel()
+            frarådetTerm = createHiddenLabel()
+            eksempel = createExample()
+            fagområde = createSubject()
+            bruksområde = createDomainOfUse()
+            kontaktpunkt = createContactPoint()
+            seOgså = createSeeAlsoReferences()
+            gyldigFom = null
+            gyldigTom = null
+        }
+
+        validateModelWithSingleConcept(publisherId, concept)
+    }
+
+    @Test
+    @Throws(NoSuchFieldException::class)
+    fun expectConceptWithMandatoryFieldsAndValidityPeriodOnlyValidFromValueToBeSerialisedCorrectly() {
+        val publisherId = "123456789"
+        val conceptId = "concept-id"
+
+        val concept = Begrep().apply {
+            id = conceptId
+            anbefaltTerm = createPrefLabel()
+            definisjon = createDefinition()
+            ansvarligVirksomhet = createPublisher(publisherId)
+            endringslogelement = createChangeLogElement()
+            omfang = createScope()
+            merknad = createScopeNote()
+            kildebeskrivelse = createSourceDescription()
+            tillattTerm = createAltLabel()
+            frarådetTerm = createHiddenLabel()
+            eksempel = createExample()
+            fagområde = createSubject()
+            bruksområde = createDomainOfUse()
+            kontaktpunkt = createContactPoint()
+            seOgså = createSeeAlsoReferences()
+            gyldigFom = LocalDate.now()
+            gyldigTom = null
+        }
+
+        validateModelWithSingleConcept(publisherId, concept)
+    }
+
+    @Test
+    @Throws(NoSuchFieldException::class)
+    fun expectConceptWithMandatoryFieldsAndValidityPeriodOnlyValidToValueToBeSerialisedCorrectly() {
+        val publisherId = "123456789"
+        val conceptId = "concept-id"
+
+        val concept = Begrep().apply {
+            id = conceptId
+            anbefaltTerm = createPrefLabel()
+            definisjon = createDefinition()
+            ansvarligVirksomhet = createPublisher(publisherId)
+            endringslogelement = createChangeLogElement()
+            omfang = createScope()
+            merknad = createScopeNote()
+            kildebeskrivelse = createSourceDescription()
+            tillattTerm = createAltLabel()
+            frarådetTerm = createHiddenLabel()
+            eksempel = createExample()
+            fagområde = createSubject()
+            bruksområde = createDomainOfUse()
+            kontaktpunkt = createContactPoint()
+            seOgså = createSeeAlsoReferences()
+            gyldigFom = null
+            gyldigTom = LocalDate.now()
+        }
+
+        validateModelWithSingleConcept(publisherId, concept)
+    }
+
+    @Test
+    @Throws(NoSuchFieldException::class)
+    fun expectConceptWithMandatoryFieldsAndValidValidityPeriodValuesToBeSerialisedCorrectly() {
+        val publisherId = "123456789"
+        val conceptId = "concept-id"
+
+        val concept = Begrep().apply {
+            id = conceptId
+            anbefaltTerm = createPrefLabel()
+            definisjon = createDefinition()
+            ansvarligVirksomhet = createPublisher(publisherId)
+            endringslogelement = createChangeLogElement()
+            omfang = createScope()
+            merknad = createScopeNote()
+            kildebeskrivelse = createSourceDescription()
+            tillattTerm = createAltLabel()
+            frarådetTerm = createHiddenLabel()
+            eksempel = createExample()
+            fagområde = createSubject()
+            bruksområde = createDomainOfUse()
+            kontaktpunkt = createContactPoint()
+            seOgså = createSeeAlsoReferences()
+            gyldigFom = LocalDate.of(2020, Month.JANUARY, 1)
+            gyldigTom = LocalDate.of(2020, Month.JANUARY, 2)
+        }
+
+        validateModelWithSingleConcept(publisherId, concept)
+    }
+
+    @Test
+    @Throws(NoSuchFieldException::class)
+    fun expectConceptWithMandatoryFieldsAndInvalidValidityPeriodValuesToBeSerialisedCorrectly() {
+        val publisherId = "123456789"
+        val conceptId = "concept-id"
+
+        val concept = Begrep().apply {
+            id = conceptId
+            anbefaltTerm = createPrefLabel()
+            definisjon = createDefinition()
+            ansvarligVirksomhet = createPublisher(publisherId)
+            endringslogelement = createChangeLogElement()
+            omfang = createScope()
+            merknad = createScopeNote()
+            kildebeskrivelse = createSourceDescription()
+            tillattTerm = createAltLabel()
+            frarådetTerm = createHiddenLabel()
+            eksempel = createExample()
+            fagområde = createSubject()
+            bruksområde = createDomainOfUse()
+            kontaktpunkt = createContactPoint()
+            seOgså = createSeeAlsoReferences()
+            gyldigFom = LocalDate.of(2020, Month.JANUARY, 2)
+            gyldigTom = LocalDate.of(2020, Month.JANUARY, 1)
+        }
+
+        validateModelWithSingleConcept(publisherId, concept)
+    }
+
     private fun createExpectedCollectionUri(publisherId: String): String {
         return "$collectionBaseUri/$publisherId"
     }
@@ -1388,6 +1535,50 @@ class SkosApNoModelServiceTest {
             val seeAlso = concept.seOgså
             if (seeAlso != null && seeAlso.isNotEmpty()) {
                 assertTrue("Expect concept to have see also references", conceptResource.hasProperty(RDFS.seeAlso))
+            }
+        }
+
+        if (conceptResource.hasProperty(DCTerms.temporal)) {
+            val validPeriodOfTimeResource = conceptResource.getProperty(DCTerms.temporal).resource
+
+            assertNotNull("Expect concept to have a validity period", validPeriodOfTimeResource)
+            assertTrue("Expect concept validity period to be a period of time", conceptResource.getProperty(DCTerms.temporal).resource.getProperty(RDF.type).`object` == DCTerms.PeriodOfTime)
+
+            val validFromIncluding = concept.gyldigFom;
+            val validToIncluding = concept.gyldigTom;
+
+            if (validFromIncluding != null && validToIncluding != null) {
+                if (validFromIncluding.isBefore(validToIncluding)) {
+                    assertTrue("Expect concept validity period to have a valid start date", validPeriodOfTimeResource.hasProperty(Schema.startDate))
+                    assertTrue("Expect concept validity period to have a valid end date", validPeriodOfTimeResource.hasProperty(Schema.endDate))
+                } else {
+                    assertFalse("Expect concept validity period to not have a start date", validPeriodOfTimeResource.hasProperty(Schema.startDate))
+                    assertFalse("Expect concept validity period to not have a end date", validPeriodOfTimeResource.hasProperty(Schema.endDate))
+                }
+            } else {
+                if (validFromIncluding != null) {
+                    assertTrue("Expect concept validity period to have a valid start date", validPeriodOfTimeResource.hasProperty(Schema.startDate))
+                } else {
+                    assertFalse("Expect concept validity period to not have a start date", validPeriodOfTimeResource.hasProperty(Schema.startDate))
+                }
+                if (validToIncluding != null) {
+                    assertTrue("Expect concept validity period to have a valid end date", validPeriodOfTimeResource.hasProperty(Schema.endDate))
+                } else {
+                    assertFalse("Expect concept validity period to not have a end date", validPeriodOfTimeResource.hasProperty(Schema.endDate))
+                }
+            }
+        } else {
+            val validFromIncluding = concept.gyldigFom;
+            val validToIncluding = concept.gyldigTom;
+
+            if (validFromIncluding != null && validToIncluding != null) {
+                if (validFromIncluding.isBefore(validToIncluding)) {
+                    assertTrue("Expect concept to have a validity period", conceptResource.hasProperty(DCTerms.temporal))
+                }
+            } else {
+                if (validFromIncluding != null || validToIncluding != null) {
+                    assertTrue("Expect concept to have a validity period", conceptResource.hasProperty(DCTerms.temporal))
+                }
             }
         }
     }

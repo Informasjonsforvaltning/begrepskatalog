@@ -181,6 +181,9 @@ components:
           gyldigFom:
             type: string
             format: date
+          gyldigTom:
+            type: string
+            format: date
           endringslogelement:
             $ref: "#/components/schemas/Endringslogelement"
           seOgså:
