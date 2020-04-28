@@ -1338,7 +1338,7 @@ class SkosApNoModelServiceTest {
         assertTrue("Expect concept to have non-empty translations of recommended term", prefLabelResource.listProperties(SKOSXL.literalForm).toList().stream().map { it.literal }.map { it.string }.filter { Objects.nonNull(it) }.noneMatch { label -> label.trim().isEmpty() })
         assertTrue("Expect concept to be translated to valid languages", validLanguageCodes.containsAll(prefLabelLanguages))
 
-        val definitionResource = conceptResource.getProperty(SKOSNO.betydningsbeskrivelse).resource
+        val definitionResource = conceptResource.getProperty(SKOSNO.definisjon).resource
         val definitionLanguages = definitionResource.listProperties(RDFS.label).toList().stream().map { it.language }.distinct().collect(Collectors.toList())
 
         assertNotNull("Expect concept to have a definition", definitionResource)

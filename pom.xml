@@ -153,9 +153,9 @@
         <dependency>
             <groupId>no.difi.skos-ap-no</groupId>
             <artifactId>concept-builder</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0.3</version>
             <scope>system</scope>
-            <systemPath>${basedir}/libs/concept-builder-1.0-SNAPSHOT.jar</systemPath>
+            <systemPath>${basedir}/libs/concept-builder-1.0.3.jar</systemPath>
         </dependency>
 
 
