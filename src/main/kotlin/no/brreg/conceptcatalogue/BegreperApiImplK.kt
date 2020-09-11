@@ -13,7 +13,6 @@ import no.brreg.conceptcatalogue.service.permission.OrganizationResourceRole.Org
 import no.brreg.conceptcatalogue.utils.patchBegrep
 import no.brreg.conceptcatalogue.validation.isValidBegrep
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -98,6 +97,45 @@ class BegreperApiImplK(
         headers.add(HttpHeaders.LOCATION, locationUri)
         headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.LOCATION)
         return ResponseEntity<Void>(headers, HttpStatus.CREATED)
+    }
+
+    override fun createBegreper(httpServletRequest: HttpServletRequest, @ApiParam(value = "", required = true) @Valid @RequestBody begreper: List<Begrep>): ResponseEntity<Void> {
+
+        for (begrep in begreper) {
+            if(isValidBegrep(begrep)) {
+                return ResponseEntity(HttpStatus.BAD_REQUEST)
+            }
+        }
+
+        val anvarligeVirksomheter = HashSet(begreper.map { it.ansvarligVirksomhet.id })
+
+        for (virksomhetId in anvarligeVirksomheter) {
+            if (!permissionService.hasOrganizationPermission(virksomhetId, OrganizationPermission.write)) {
+                return ResponseEntity(HttpStatus.FORBIDDEN)
+            }
+        }
+
+        begreper.forEach {
+            it.id = UUID.randomUUID().toString();
+            it.status = Status.UTKAST;
+            it.updateLastChangedAndByWhom()
+        }
+
+        begrepRepository.insert(begreper)
+
+        for (virksomhet in anvarligeVirksomheter) {
+            val begrepCount = begrepRepository.countBegrepByAnsvarligVirksomhetId(virksomhet)
+            if (begrepCount == 0L) {
+                logger.info("Adding first entry for ${virksomhet} in harvest admin...")
+                val harvestUrl = UriComponentsBuilder
+                        .fromUriString(httpServletRequest.requestURL.toString())
+                        .replacePath("/collections")
+                        .build().toUriString()
+                rabbitmqPublisher.sendNewDataSource(virksomhet, harvestUrl)
+            }
+        }
+
+        return ResponseEntity(HttpStatus.CREATED)
     }
 
     override fun setBegrepById(httpServletRequest: HttpServletRequest?, id: String, jsonPatchOperations: List<JsonPatchOperation>?, validate: Boolean?): ResponseEntity<Begrep> {
