@@ -17,6 +17,6 @@
   },
   "homepage": "https://github.com/Informasjonsforvaltning/concept-catalogue#readme",
   "devDependencies": {
-    "standard-version": "^8.0.1"
+    "standard-version": "^8.0.2"
   }
 }
