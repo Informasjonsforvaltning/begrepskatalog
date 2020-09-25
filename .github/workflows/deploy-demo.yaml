@@ -5,7 +5,7 @@ on:
     types: [deploy-demo]
 
 jobs:
-  deploy-demo-digdir:
+  deploy-demo:
     name: Deploy latest production image to demo environment
     runs-on: ubuntu-latest
 
@@ -46,7 +46,7 @@ jobs:
           if_mention: failure
           status: ${{ job.status }}
           author_name: 'Deploy concept-catalogue to demo'
-          fields: repo,message,commit,author,ref,workflow
+          fields: commit,author,workflow
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

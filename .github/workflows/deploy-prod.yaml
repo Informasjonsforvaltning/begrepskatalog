@@ -69,7 +69,7 @@ jobs:
           if_mention: failure
           status: ${{ job.status }}
           author_name: 'Deploy concept-catalogue to prod'
-          fields: repo,message,commit,author,ref,workflow
+          fields: message,commit,author,workflow
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
