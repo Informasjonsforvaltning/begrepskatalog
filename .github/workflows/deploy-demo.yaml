@@ -45,7 +45,7 @@ jobs:
           mention: 'channel'
           if_mention: failure
           status: ${{ job.status }}
-          author_name: 'Deploy concept-catalogue to demo'
+          author_name: 'Application: concept-catalogue | Environment: demo'
           fields: commit,author,workflow
         env:
           GITHUB_TOKEN: ${{ github.token }}
