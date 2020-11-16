@@ -96,7 +96,7 @@ class BegreperApiImplK(
 
         headers.add(HttpHeaders.LOCATION, locationUri)
         headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.LOCATION)
-        return ResponseEntity<Void>(headers, HttpStatus.CREATED)
+        return ResponseEntity(headers, HttpStatus.CREATED)
     }
 
     override fun createBegreper(httpServletRequest: HttpServletRequest, @ApiParam(value = "", required = true) @Valid @RequestBody begreper: List<Begrep>): ResponseEntity<Void> {
