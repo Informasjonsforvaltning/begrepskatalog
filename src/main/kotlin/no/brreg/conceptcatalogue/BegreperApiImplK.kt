@@ -101,37 +101,30 @@ class BegreperApiImplK(
 
     override fun createBegreper(httpServletRequest: HttpServletRequest, @ApiParam(value = "", required = true) @Valid @RequestBody begreper: List<Begrep>): ResponseEntity<Void> {
 
-        for (begrep in begreper) {
-            if(isValidBegrep(begrep)) {
-                return ResponseEntity(HttpStatus.BAD_REQUEST)
-            }
-        }
+        val ansvarligeVirksomheter = HashSet(begreper.map { it.ansvarligVirksomhet.id })
 
-        val anvarligeVirksomheter = HashSet(begreper.map { it.ansvarligVirksomhet.id })
-
-        for (virksomhetId in anvarligeVirksomheter) {
-            if (!permissionService.hasOrganizationPermission(virksomhetId, OrganizationPermission.write)) {
-                return ResponseEntity(HttpStatus.FORBIDDEN)
-            }
+        if (ansvarligeVirksomheter.stream()
+                        .anyMatch { !permissionService.hasOrganizationPermission(it, OrganizationPermission.write) }) {
+            return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
         begreper.forEach {
-            it.id = UUID.randomUUID().toString();
-            it.status = Status.UTKAST;
+            it.id = UUID.randomUUID().toString()
+            it.status = Status.UTKAST
             it.updateLastChangedAndByWhom()
         }
 
         begrepRepository.insert(begreper)
 
-        for (virksomhet in anvarligeVirksomheter) {
-            val begrepCount = begrepRepository.countBegrepByAnsvarligVirksomhetId(virksomhet)
+        ansvarligeVirksomheter.forEach {
+            val begrepCount = begrepRepository.countBegrepByAnsvarligVirksomhetId(it)
             if (begrepCount == 0L) {
-                logger.info("Adding first entry for ${virksomhet} in harvest admin...")
+                logger.info("Adding first entry for ${it} in harvest admin...")
                 val harvestUrl = UriComponentsBuilder
                         .fromUriString(httpServletRequest.requestURL.toString())
                         .replacePath("/collections")
                         .build().toUriString()
-                rabbitmqPublisher.sendNewDataSource(virksomhet, harvestUrl)
+                rabbitmqPublisher.sendNewDataSource(it, harvestUrl)
             }
         }
 
