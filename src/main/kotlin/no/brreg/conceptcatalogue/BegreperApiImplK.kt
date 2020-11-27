@@ -13,7 +13,6 @@ import no.brreg.conceptcatalogue.service.permission.OrganizationResourceRole.Org
 import no.brreg.conceptcatalogue.utils.patchBegrep
 import no.brreg.conceptcatalogue.validation.isValidBegrep
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -97,7 +96,39 @@ class BegreperApiImplK(
 
         headers.add(HttpHeaders.LOCATION, locationUri)
         headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.LOCATION)
-        return ResponseEntity<Void>(headers, HttpStatus.CREATED)
+        return ResponseEntity(headers, HttpStatus.CREATED)
+    }
+
+    override fun createBegreper(httpServletRequest: HttpServletRequest, @ApiParam(value = "", required = true) @Valid @RequestBody begreper: List<Begrep>): ResponseEntity<Void> {
+
+        val ansvarligeVirksomheter = HashSet(begreper.map { it.ansvarligVirksomhet.id })
+
+        if (ansvarligeVirksomheter.stream()
+                        .anyMatch { !permissionService.hasOrganizationPermission(it, OrganizationPermission.write) }) {
+            return ResponseEntity(HttpStatus.FORBIDDEN)
+        }
+
+        begreper.forEach {
+            it.id = UUID.randomUUID().toString()
+            it.status = Status.UTKAST
+            it.updateLastChangedAndByWhom()
+        }
+
+        begrepRepository.insert(begreper)
+
+        ansvarligeVirksomheter.forEach {
+            val begrepCount = begrepRepository.countBegrepByAnsvarligVirksomhetId(it)
+            if (begrepCount == 0L) {
+                logger.info("Adding first entry for ${it} in harvest admin...")
+                val harvestUrl = UriComponentsBuilder
+                        .fromUriString(httpServletRequest.requestURL.toString())
+                        .replacePath("/collections")
+                        .build().toUriString()
+                rabbitmqPublisher.sendNewDataSource(it, harvestUrl)
+            }
+        }
+
+        return ResponseEntity(HttpStatus.CREATED)
     }
 
     override fun setBegrepById(httpServletRequest: HttpServletRequest?, id: String, jsonPatchOperations: List<JsonPatchOperation>?, validate: Boolean?): ResponseEntity<Begrep> {

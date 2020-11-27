@@ -47,4 +47,4 @@ security:
   oauth2:
     resource:
       id: concept-catalogue
-      jwk.key-set-uri: http://localhost:8084/jwk
+      jwk.key-set-uri: https://sso.staging.fellesdatakatalog.digdir.no/auth/realms/fdk/protocol/openid-connect/certs
