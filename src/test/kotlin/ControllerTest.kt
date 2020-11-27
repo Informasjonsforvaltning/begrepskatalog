@@ -6,8 +6,8 @@ import no.brreg.conceptcatalogue.repository.BegrepRepository
 import no.brreg.conceptcatalogue.service.permission.PermissionService
 import no.brreg.conceptcatalogue.service.ConceptPublisher
 import no.brreg.conceptcatalogue.utils.patchBegrep
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
+import org.hamcrest.collection.IsArrayWithSize
+import org.junit.Assert.*
 import org.junit.Ignore
 import org.junit.Test
 import org.springframework.http.HttpStatus
@@ -44,6 +44,39 @@ class ControllerTest {
         val testRegExp = Regex("^/begreper/[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$", RegexOption.IGNORE_CASE)
         assertTrue("Incorrect location header value", locationHeaderValue?.matches(testRegExp) ?: false)
     }
+
+    @Test
+    fun test_concepts_were_added() {
+        val numberOfConcepts = 10;
+        val begrepRepositoryMock: BegrepRepository = prepareBegrepRepositoryMock()
+        val httpServletRequestMock: HttpServletRequest = mock()
+
+        val postRequestUri = "/begreper"
+        val baseUrl = "https://testurl.no"
+
+        whenever(httpServletRequestMock.requestURI).thenReturn(postRequestUri)
+        whenever(httpServletRequestMock.requestURL).thenReturn(StringBuffer(baseUrl))
+
+        val captor = argumentCaptor<List<Begrep>>()
+
+        val permissionServiceMock: PermissionService = prepareFdkPermissionsMock()
+        val rabbitPublisherMock: ConceptPublisher = prepareRabbitMock()
+
+        val begreperApiImplK = BegreperApiImplK(begrepRepositoryMock, permissionServiceMock, rabbitPublisherMock)
+
+        val begreper = ArrayList<Begrep>()
+        for (i in 1..numberOfConcepts) {
+            begreper.add(makeBegrep())
+        }
+
+        val retValue = begreperApiImplK.createBegreper(httpServletRequestMock, begreper)
+        verify(begrepRepositoryMock).insert(captor.capture())
+        assertNotNull(retValue)
+        assertTrue(retValue.statusCode.is2xxSuccessful)
+        assertTrue(captor.firstValue.size.equals(numberOfConcepts))
+        println(begreper.size)
+    }
+
 
     @Ignore // TODO: there is no functionality for on-demand validation
     @Test(expected = RuntimeException::class)

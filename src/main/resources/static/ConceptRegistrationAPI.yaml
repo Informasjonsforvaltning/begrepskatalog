@@ -143,53 +143,81 @@ paths:
       responses:
         '204':
           description: No Content
+  /begreper/import:
+    post:
+      tags:
+        - begrepskatalog
+      description: opprette nytt begrep
+      operationId: createBegreper
+      responses:
+        '201':
+          description: Created
+          headers:
+            Count:
+              schema:
+                type: string
+              description: antall begreper lagt til
+        '409':
+          description: Ulovlig verdier i begrep
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Feilmelding"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Begrep"
 components:
   schemas:
     Begrep:
-        type: object
-        description: Et begrep
-        properties:
-          id:
+      type: object
+      description: Et begrep
+      properties:
+        id:
+          type: string
+          description: system-generert id (GUID)
+        status:
+          $ref: "#/components/schemas/Status"
+        anbefaltTerm:
+          $ref: "#/components/schemas/Term"
+        tillattTerm:
+          $ref: "#/components/schemas/TekstMedSpraakKode"
+        frarådetTerm:
+          $ref: "#/components/schemas/TekstMedSpraakKode"
+        definisjon:
+          $ref: "#/components/schemas/Definisjon"
+        kildebeskrivelse:
+          $ref: "#/components/schemas/Kildebeskrivelse"
+        merknad:
+          $ref: '#/components/schemas/TekstMedSpraakKode'
+        ansvarligVirksomhet:
+          $ref: "#/components/schemas/Virksomhet"
+        eksempel:
+          $ref: '#/components/schemas/TekstMedSpraakKode'
+        fagområde:
+          $ref: '#/components/schemas/TekstMedSpraakKode'
+        bruksområde:
+          $ref: '#/components/schemas/TekstMedSpraakKode'
+        omfang:
+          $ref: "#/components/schemas/URITekst"
+        kontaktpunkt:
+          $ref: "#/components/schemas/Kontaktpunkt"
+        gyldigFom:
+          type: string
+          format: date
+        gyldigTom:
+          type: string
+          format: date
+        endringslogelement:
+          $ref: "#/components/schemas/Endringslogelement"
+        seOgså:
+          type: array
+          items:
             type: string
-            description: system-generert id (GUID)
-          status:
-            $ref: "#/components/schemas/Status"
-          anbefaltTerm:
-            $ref: "#/components/schemas/Term"
-          tillattTerm:
-            $ref: "#/components/schemas/TekstMedSpraakKode"
-          frarådetTerm:
-            $ref: "#/components/schemas/TekstMedSpraakKode"
-          definisjon:
-            $ref: "#/components/schemas/Definisjon"
-          kildebeskrivelse:
-            $ref: "#/components/schemas/Kildebeskrivelse"
-          merknad:
-            $ref: '#/components/schemas/TekstMedSpraakKode'
-          ansvarligVirksomhet:
-            $ref: "#/components/schemas/Virksomhet"
-          eksempel:
-            $ref: '#/components/schemas/TekstMedSpraakKode'
-          fagområde:
-            $ref: '#/components/schemas/TekstMedSpraakKode'
-          bruksområde:
-            $ref: '#/components/schemas/TekstMedSpraakKode'
-          omfang:
-            $ref: "#/components/schemas/URITekst"
-          kontaktpunkt:
-            $ref: "#/components/schemas/Kontaktpunkt"
-          gyldigFom:
-            type: string
-            format: date
-          gyldigTom:
-            type: string
-            format: date
-          endringslogelement:
-            $ref: "#/components/schemas/Endringslogelement"
-          seOgså:
-            type: array
-            items:
-              type: string
     Kildebeskrivelse:
       type: object
       required:
@@ -243,13 +271,13 @@ components:
     Status:
       type: string
       enum:
-      - utkast
-      - godkjent
-      - publisert
+        - utkast
+        - godkjent
+        - publisert
     Feilmelding:
       type: object
       required:
-      - melding
+        - melding
       properties:
         melding:
           type: string
