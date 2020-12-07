@@ -11,7 +11,6 @@ import org.apache.jena.rdf.model.Model
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-
 import java.io.StringWriter
 
 @Service
@@ -27,21 +26,31 @@ class SkosApNoModelService(
 
     fun buildModelForPublishersCollection(publisherId: String): Model {
         logger.info("Building concept collection model for publisher: {}", publisherId)
+
         val modelBuilder = instantiateModelBuilder()
+
         addConceptsToCollection(modelBuilder, publisherId)
+
         return modelBuilder.build()
     }
 
     fun buildModelForAllCollections(): Model {
         logger.info("Building concept collection models for all publishers")
+
         val modelBuilder = instantiateModelBuilder()
-        conceptService.getAllPublisherIds().forEach { addConceptsToCollection(modelBuilder, it) }
+
+        conceptService
+                .getAllPublisherIds()
+                .forEach { addConceptsToCollection(modelBuilder, it) }
+
         return modelBuilder.build()
     }
 
     fun serializeAsTextTurtle(model: Model): String {
         val stringWriter = StringWriter()
+
         model.write(stringWriter, "TURTLE")
+
         return stringWriter.buffer.toString()
     }
 
@@ -58,8 +67,10 @@ class SkosApNoModelService(
 
     private fun addConceptsToCollection(modelBuilder: ModelBuilder, publisherId: String) {
         val collectionBuilder = instantiateCollectionBuilder(modelBuilder, publisherId)
-        val concepts = conceptService.getPublishedConceptsForPublisherId(publisherId)
-        concepts.forEach { addConceptToCollection(collectionBuilder, it) }
+
+        conceptService
+                .getPublishedConceptsForPublisherId(publisherId)
+                .forEach { addConceptToCollection(collectionBuilder, it) }
     }
 
     private fun addConceptToCollection(collectionBuilder: CollectionBuilder, concept: Begrep) {
@@ -92,159 +103,146 @@ class SkosApNoModelService(
     }
 
     private fun addPrefLabelToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
-        val term = concept.anbefaltTerm
-        if (term != null && term.navn.isNotEmpty()) {
-            val prefLabelBuilder = conceptBuilder.prefLabelBuilder()
-            term.navn.forEach { (key, value) ->
-                if (value != null && value.toString().trim().isNotEmpty()) {
-                    prefLabelBuilder.label(value.toString(), key)
+        concept.anbefaltTerm?.navn
+                ?.filterValues { !it?.toString().isNullOrBlank() }
+                ?.takeIf { it.isNotEmpty() }
+                ?.let {
+                    val prefLabelBuilder = conceptBuilder.prefLabelBuilder()
+
+                    it.forEach { (key, value) -> prefLabelBuilder.label(value.toString(), key) }
+
+                    prefLabelBuilder.build()
                 }
-            }
-            prefLabelBuilder.build()
-        }
     }
 
+
     private fun addDefinitionToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
-        val definition = concept.definisjon
-        if (definition != null && definition.tekst.isNotEmpty()) {
-            val definitionBuilder = conceptBuilder.definitionBuilder()
-            definition.tekst.forEach { (key, value) ->
-                if (value != null && value.toString().trim().isNotEmpty()) {
-                    definitionBuilder.text(value.toString(), key)
+        concept.definisjon?.tekst
+                ?.filterValues { !it?.toString().isNullOrBlank() }
+                ?.takeIf { it.isNotEmpty() }
+                ?.let {
+                    val definitionBuilder = conceptBuilder.definitionBuilder()
+
+                    it.forEach { (key, value) -> definitionBuilder.text(value.toString(), key) }
+
+                    addScopeToDefinition(definitionBuilder, concept)
+                    addScopeNoteToDefinition(definitionBuilder, concept)
+                    addSourceDescriptionToDefinition(definitionBuilder, concept)
+
+                    definitionBuilder.build()
                 }
-            }
-            addScopeToDefinition(definitionBuilder, concept)
-            addScopeNoteToDefinition(definitionBuilder, concept)
-            addSourceDescriptionToDefinition(definitionBuilder, concept)
-            definitionBuilder.build()
-        }
     }
 
     private fun addScopeToDefinition(definitionBuilder: DefinitionBuilder, concept: Begrep) {
-        val scope = concept.omfang
-        if (scope != null && (scope.tekst.trim().isNotEmpty() || scope.uri.trim().isNotEmpty())) {
-            definitionBuilder.scopeBuilder().label(scope.tekst, NB).seeAlso(scope.uri).build()
-        }
+        concept.omfang
+                ?.takeIf { it.tekst?.isNotBlank() == true || it.uri?.isNotBlank() == true }
+                ?.let { definitionBuilder.scopeBuilder().label(it.tekst, NB).seeAlso(it.uri).build() }
     }
 
     private fun addScopeNoteToDefinition(definitionBuilder: DefinitionBuilder, concept: Begrep) {
-        val scopeNote = concept.merknad
-        if (scopeNote != null && scopeNote.isNotEmpty()) {
-            scopeNote.forEach { (key, value) ->
-                if (value != null && value.toString().trim().isNotEmpty()) {
-                    definitionBuilder.scopeNote(value.toString(), key)
-                }
-            }
-        }
+        concept.merknad
+                ?.filterValues { !it?.toString().isNullOrBlank() }
+                ?.forEach { (key, value) -> definitionBuilder.scopeNote(value.toString(), key) }
     }
 
     private fun addSourceDescriptionToDefinition(definitionBuilder: DefinitionBuilder, concept: Begrep) {
-        val sourceDescription = concept.kildebeskrivelse
-        if (sourceDescription != null) {
-            val sourcedescriptionBuilder = definitionBuilder.sourcedescriptionBuilder()
-            sourceDescription.forholdTilKilde?.let {
-                if (it == Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT) {
-                    sourcedescriptionBuilder.sourcetype(SourceType.Source.Userdefined)
+        concept.kildebeskrivelse
+                ?.takeIf { it.forholdTilKilde !== null || it.kilde.isNotEmpty() }
+                ?.let {
+                    val sourceDescriptionBuilder = definitionBuilder.sourcedescriptionBuilder()
+
+                    it.forholdTilKilde?.let { type ->
+                        if (type == Kildebeskrivelse.ForholdTilKildeEnum.EGENDEFINERT) {
+                            sourceDescriptionBuilder.sourcetype(SourceType.Source.Userdefined)
+                        }
+                        if (type == Kildebeskrivelse.ForholdTilKildeEnum.BASERTPAAKILDE) {
+                            sourceDescriptionBuilder.sourcetype(SourceType.Source.BasedOn)
+                        }
+                        if (type == Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE) {
+                            sourceDescriptionBuilder.sourcetype(SourceType.Source.QuoteFrom)
+                        }
+                    }
+
+                    val sourceBuilder = sourceDescriptionBuilder.sourceBuilder()
+
+                    it.kilde
+                            ?.filterNotNull()
+                            ?.forEach { source -> sourceBuilder.label(source.tekst, NB).seeAlso(source.uri) }
+
+                    sourceBuilder.build()
+
+                    sourceDescriptionBuilder.build()
                 }
-                if (it == Kildebeskrivelse.ForholdTilKildeEnum.BASERTPAAKILDE) {
-                    sourcedescriptionBuilder.sourcetype(SourceType.Source.BasedOn)
-                }
-                if (it == Kildebeskrivelse.ForholdTilKildeEnum.SITATFRAKILDE) {
-                    sourcedescriptionBuilder.sourcetype(SourceType.Source.QuoteFrom)
-                }
-            }
-            val sources = sourceDescription.kilde
-            if (sources.isNotEmpty()) {
-                val sourceBuilder = sourcedescriptionBuilder.sourceBuilder()
-                sources.forEach { source -> sourceBuilder.label(source.tekst, NB).seeAlso(source.uri) }
-                sourceBuilder.build()
-            }
-            sourcedescriptionBuilder.build()
-        }
     }
 
     private fun addAltLabelToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
-        val altLabel = concept.tillattTerm
-        if (altLabel != null && altLabel.isNotEmpty()) {
-            val altLabelBuilder = conceptBuilder.altLabelBuilder()
-            altLabel.forEach { (key, entry) ->
-                if (entry is List<*> && entry.isNotEmpty()) {
-                    entry.forEach { value -> altLabelBuilder.label(value.toString(), key) }
+        concept.tillattTerm
+                ?.filterValues { it is List<*> && it.isNotEmpty() }
+                ?.takeIf { it.isNotEmpty() }
+                ?.let {
+                    val altLabelBuilder = conceptBuilder.altLabelBuilder()
+
+                    it.forEach { (key, entry) -> (entry as List<*>).forEach { value -> altLabelBuilder.label(value.toString(), key) } }
+
+                    altLabelBuilder.build()
                 }
-            }
-            altLabelBuilder.build()
-        }
     }
 
     private fun addHiddenLabelToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
-        val hiddenLabel = concept.frarådetTerm
-        if (hiddenLabel != null && hiddenLabel.isNotEmpty()) {
-            val hiddenLabelBuilder = conceptBuilder.hiddenLabelBuilder()
-            hiddenLabel.forEach { (key, entry) ->
-                if (entry is List<*> && entry.isNotEmpty()) {
-                    entry.forEach { value -> hiddenLabelBuilder.label(value.toString(), key) }
+        concept.frarådetTerm
+                ?.filterValues { it is List<*> && it.isNotEmpty() }
+                ?.takeIf { it.isNotEmpty() }
+                ?.let {
+                    val hiddenLabelBuilder = conceptBuilder.hiddenLabelBuilder()
+
+                    it.forEach { (key, entry) -> (entry as List<*>).forEach { value -> hiddenLabelBuilder.label(value.toString(), key) } }
+
+                    hiddenLabelBuilder.build()
                 }
-            }
-            hiddenLabelBuilder.build()
-        }
     }
 
     private fun addExampleToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
-        val example = concept.eksempel
-        if (example != null && example.isNotEmpty()) {
-            example.forEach { (key, value) ->
-                if (value != null && value.toString().trim().isNotEmpty()) {
-                    conceptBuilder.example(value.toString(), key)
-                }
-            }
-        }
+        concept.eksempel
+                ?.filterValues { !it?.toString().isNullOrBlank() }
+                ?.forEach { (key, value) -> conceptBuilder.example(value.toString(), key) }
     }
 
     private fun addSubjectToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
-        val subject = concept.fagområde
-        if (subject != null && subject.isNotEmpty()) {
-            subject.forEach { (key, value) ->
-                if (value != null && value.toString().trim().isNotEmpty()) {
-                    conceptBuilder.subject(value.toString(), key)
-                }
-            }
-        }
+        concept.fagområde
+                ?.filterValues { !it?.toString().isNullOrBlank() }
+                ?.forEach { (key, value) -> conceptBuilder.subject(value.toString(), key) }
     }
 
     private fun addDomainOfUseToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
-        val domainOfUse = concept.bruksområde
-        if (domainOfUse != null && domainOfUse.isNotEmpty()) {
-            domainOfUse.forEach { (key, entry) ->
-                if (entry is List<*> && entry.isNotEmpty()) {
-                    entry.forEach { value -> conceptBuilder.domainOfUse(value.toString(), key) }
-                }
-            }
-        }
+        concept.bruksområde
+                ?.filterValues { it is List<*> && it.isNotEmpty() }
+                ?.forEach { (key, entry) -> (entry as List<*>).forEach { value -> conceptBuilder.domainOfUse(value.toString(), key) } }
     }
 
     private fun addContactPointToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
-        val contactPoint = concept.kontaktpunkt
-        if (contactPoint != null) {
-            val contactPointBuilder = conceptBuilder.contactPointBuilder()
-            val email = contactPoint.harEpost
-            val phone = contactPoint.harTelefon
-            if (email != null && email.trim().isNotEmpty()) {
-                contactPointBuilder.email(email)
-            }
-            if (phone != null && phone.trim().isNotEmpty()) {
-                contactPointBuilder.telephone(phone)
-            }
-            contactPointBuilder.build()
-        }
+        concept.kontaktpunkt
+                ?.let {
+                    val contactPointBuilder = conceptBuilder.contactPointBuilder()
+
+                    val email = it.harEpost
+                    val phone = it.harTelefon
+
+                    if (email?.isNotBlank() == true) {
+                        contactPointBuilder.email(email)
+                    }
+
+                    if (phone?.isNotBlank() == true) {
+                        contactPointBuilder.telephone(phone)
+                    }
+
+                    contactPointBuilder.build()
+                }
     }
 
     private fun addSeeAlsoReferencesToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
-        val seeAlso = concept.seOgså
-        if (seeAlso != null && seeAlso.isNotEmpty()) {
-            seeAlso
-                    .filter { !it.isNullOrEmpty() }
-                    .forEach { conceptBuilder.seeAlso(it).build() }
-        }
+        concept.seOgså
+                ?.filter { !it.isNullOrBlank() }
+                ?.forEach { conceptBuilder.seeAlso(it).build() }
     }
 
     private fun addValidityPeriodToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
