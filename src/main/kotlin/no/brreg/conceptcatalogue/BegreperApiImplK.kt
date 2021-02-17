@@ -118,7 +118,7 @@ class BegreperApiImplK(
 
         ansvarligeVirksomheter.forEach {
             val begrepCount = begrepRepository.countBegrepByAnsvarligVirksomhetId(it)
-            if (begrepCount == 0L) {
+            if (begrepCount == 1L) {
                 logger.info("Adding first entry for ${it} in harvest admin...")
                 val harvestUrl = UriComponentsBuilder
                         .fromUriString(httpServletRequest.requestURL.toString())
