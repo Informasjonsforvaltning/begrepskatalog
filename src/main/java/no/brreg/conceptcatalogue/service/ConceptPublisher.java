@@ -40,7 +40,8 @@ public class ConceptPublisher {
     public void sendNewDataSource(String publisherId, String harvestUrl) {
         DataSource dataSource = DataSource.builder()
             .publisherId(publisherId)
-            .dataSourceType(DataSource.DataSourceTypeEnum.SKOS_AP_NO)
+            .dataType(DataSource.DataType.CONCEPT)
+            .dataSourceType(DataSource.DataSourceType.SKOS_AP_NO)
             .acceptHeaderValue("text/turtle")
             .description(String.format("Automatically generated data source for %s", publisherId))
             .url(harvestUrl)

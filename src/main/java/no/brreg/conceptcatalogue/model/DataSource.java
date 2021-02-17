@@ -8,8 +8,10 @@ import lombok.*;
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DataSource {
+    @JsonProperty("dataType")
+    private DataType dataType;
     @JsonProperty("dataSourceType")
-    private DataSourceTypeEnum dataSourceType;
+    private DataSourceType dataSourceType;
     @JsonProperty("url")
     private String url;
     @JsonProperty("acceptHeaderValue")
@@ -20,7 +22,19 @@ public class DataSource {
     private String description;
 
     @AllArgsConstructor
-    public enum DataSourceTypeEnum {
+    public enum DataType {
+        CONCEPT("concept");
+
+        private String value;
+
+        @JsonValue
+        public String getValue() {
+            return value;
+        }
+    }
+
+    @AllArgsConstructor
+    public enum DataSourceType {
         SKOS_AP_NO("SKOS-AP-NO"),
         DCAT_AP_NO("DCAT-AP-NO");
 
