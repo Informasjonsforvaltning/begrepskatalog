@@ -169,6 +169,7 @@ class BegreperApiImplK(
             return ResponseEntity.ok(patchedBegrep)
 
         } catch (exception: Exception) {
+            logger.warn("Invalid patch operation. Begrep id $id", exception)
             when (exception) {
                 is JsonException, is IllegalArgumentException -> throw RuntimeException("Invalid patch operation. Begrep id $id")
                 else -> throw exception
